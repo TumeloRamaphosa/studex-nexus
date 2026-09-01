@@ -1,0 +1,30 @@
+[submodule "agents-nest/cloud-vm"]
+	path = agents-nest/cloud-vm
+	url = https://github.com/TumeloRamaphosa/The-Nexus-Agents-NEst.git
+[submodule "agents/robusca"]
+	path = agents/robusca
+	url = https://github.com/TumeloRamaphosa/robusca-brain.git
+[submodule "agents/dr-fixit"]
+	path = agents/dr-fixit
+	url = https://github.com/TumeloRamaphosa/agents-dr.fixit.git
+[submodule "platform/valley-os"]
+	path = platform/valley-os
+	url = https://github.com/TumeloRamaphosa/StudEx-Valley-OS.git
+[submodule "nexus/mission-control"]
+	path = nexus/mission-control
+	url = https://github.com/TumeloRamaphosa/studex-mission-control.git
+[submodule "verticals/global-markets"]
+	path = verticals/global-markets
+	url = https://github.com/TumeloRamaphosa/Global-Trader.git
+[submodule "verticals/coffee"]
+	path = verticals/coffee
+	url = https://github.com/StudEX/Africa-Coffee-Bean.git
+[submodule "labs/agentic-lab-v3"]
+	path = labs/agentic-lab-v3
+	url = https://github.com/TumeloRamaphosa/agentic-lab-v3.git
+[submodule "labs/dark-factory"]
+	path = labs/dark-factory
+	url = https://github.com/TumeloRamaphosa/dark-factory.git
+[submodule "nexus/command-center-v0"]
+	path = nexus/command-center-v0
+	url = https://github.com/TumeloRamaphosa/command-center.git
