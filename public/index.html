@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STUDEX NEXUS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --obsidian: #0A0A0A;
+            --obsidian-light: #141414;
+            --obsidian-lighter: #1E1E1E;
+            --gold: #C9A84C;
+            --gold-dim: #8B7355;
+            --gold-bright: #E5C76B;
+            --text-primary: #F5F5F5;
+            --text-secondary: #888888;
+            --green: #2ECC71;
+            --amber: #F39C12;
+            --red: #E74C3C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: var(--obsidian);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--obsidian) 0%, #0D0D0D 50%, var(--obsidian) 100%);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(201, 168, 76, 0.03) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(4rem, 15vw, 12rem);
+            letter-spacing: 0.15em;
+            color: var(--text-primary);
+            text-shadow: 0 0 80px rgba(201, 168, 76, 0.3);
+            animation: titleGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 60px rgba(201, 168, 76, 0.2); }
+            50% { text-shadow: 0 0 100px rgba(201, 168, 76, 0.5), 0 0 20px rgba(201, 168, 76, 0.3); }
+        }
+
+        .hero-tagline {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(0.8rem, 2vw, 1.1rem);
+            letter-spacing: 0.4em;
+            color: var(--gold);
+            margin-top: 24px;
+            text-transform: uppercase;
+        }
+
+        .gold-accent {
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 40px auto;
+            position: relative;
+            animation: accentWidth 3s ease-in-out infinite;
+        }
+
+        @keyframes accentWidth {
+            0%, 100% { width: 120px; opacity: 0.7; }
+            50% { width: 200px; opacity: 1; }
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 60px;
+            margin-top: 60px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            color: var(--gold);
+            display: block;
+        }
+
+        .hero-stat-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        .scroll-indicator svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--gold);
+            opacity: 0.6;
+        }
+
+        /* SECTION STYLING */
+        section {
+            padding: 100px 0;
+        }
+
+        .section-header {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 0;
+            width: 60px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        /* AUTO-MEAT COMMAND CENTRE */
+        .command-centre {
+            background: var(--obsidian-light);
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            border-radius: 4px;
+            padding: 40px;
+            margin-bottom: 80px;
+        }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .command-item {
+            border-left: 1px solid rgba(201, 168, 76, 0.2);
+            padding-left: 20px;
+        }
+
+        .command-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .command-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+        }
+
+        .command-value.status-active {
+            color: var(--green);
+        }
+
+        .command-value.status-warning {
+            color: var(--amber);
+        }
+
+        /* CONTENT ENGINE */
+        .content-engine {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .content-engine {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .content-column {
+            background: var(--obsidian-light);
+            border: 1px solid rgba(201, 168, 76, 0.1);
+            border-radius: 4px;
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+        }
+
+        .column-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .column-count {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            background: rgba(201, 168, 76, 0.15);
+            color: var(--gold);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .post-item {
+            background: var(--obsidian-lighter);
+            border-radius: 3px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 2px solid var(--gold-dim);
+            transition: all 0.3s ease;
+        }
+
+        .post-item:hover {
+            border-left-color: var(--gold);
+            transform: translateX(4px);
+        }
+
+        .post-item.pending {
+            border-left-color: var(--amber);
+        }
+
+        .post-item.approved {
+            border-left-color: var(--green);
+        }
+
+        .post-platform {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .post-caption {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .post-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--gold-dim);
+        }
+
+        .post-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 3px;
+            margin-top: 10px;
+            background: var(--obsidian);
+        }
+
+        /* AGENT RECOMMENDATIONS */
+        .recommendations-list {
+            margin-top: 40px;
+        }
+
+        .recommendation-card {
+            background: var(--obsidian-light);
+            border: 1px solid rgba(201, 168, 76, 0.12);
+            border-radius: 4px;
+            padding: 30px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .recommendation-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .rec-topic {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.1em;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .rec-caption {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .rec-meta {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .rec-meta-item {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .rec-meta-item strong {
+            color: var(--text-primary);
+        }
+
+        .rec-timing {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timing-bar {
+            width: 60px;
+            height: 4px;
+            background: var(--obsidian-lighter);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .timing-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 2px;
+        }
+
+        .rec-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-approve {
+            background: var(--green);
+            color: var(--obsidian);
+        }
+
+        .btn-approve:hover {
+            background: #3AE07A;
+        }
+
+        .btn-reject {
+            background: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+
+        .btn-reject:hover {
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        /* INFLUENCER PORTAL */
+        .influencer-portal {
+            background: linear-gradient(180deg, var(--obsidian-light) 0%, var(--obsidian) 100%);
+            border-top: 1px solid rgba(201, 168, 76, 0.1);
+            border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            background: var(--obsidian-lighter);
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            border-radius: 3px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: 0.1em;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .login-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: var(--gold);
+            color: var(--obsidian);
+            font-weight: 700;
+        }
+
+        .btn-login:hover {
+            background: var(--gold-bright);
+        }
+
+        .login-error {
+            color: var(--red);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .portal-content {
+            display: none;
+        }
+
+        .portal-content.active {
+            display: block;
+        }
+
+        .portal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .influencer-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 0.65rem;
+        }
+
+        .influencer-post {
+            background: var(--obsidian-lighter);
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(201, 168, 76, 0.1);
+        }
+
+        .influencer-post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .influencer-post-status {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .status-pending {
+            background: rgba(243, 156, 18, 0.15);
+            color: var(--amber);
+        }
+
+        .status-approved {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--green);
+        }
+
+        .status-rejected {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--red);
+        }
+
+        .edit-caption {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            background: var(--obsidian);
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            border-radius: 3px;
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 12px;
+        }
+
+        .edit-caption:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .influencer-post-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-edit {
+            background: var(--gold-dim);
+            color: var(--obsidian);
+        }
+
+        /* STUDEX MEAT LIVE */
+        .meat-live {
+            background: var(--obsidian-light);
+        }
+
+        .live-counters {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .live-counters {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .counter-card {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--obsidian);
+            border: 1px solid rgba(201, 168, 76, 0.1);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .counter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .counter-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: var(--gold);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .counter-value.small {
+            font-size: 2.5rem;
+        }
+
+        .counter-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .counter-sub {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--gold-dim);
+            margin-top: 8px;
+        }
+
+        .top-post-link {
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 14px;
+            border: 1px solid var(--gold-dim);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .top-post-link:hover {
+            background: rgba(201, 168, 76, 0.1);
+            border-color: var(--gold);
+        }
+
+        /* N8N WORKFLOW STATUS */
+        .workflow-status {
+            margin-top: 60px;
+        }
+
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .workflow-card {
+            background: var(--obsidian-lighter);
+            border: 1px solid rgba(201, 168, 76, 0.08);
+            border-radius: 4px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workflow-info h4 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .workflow-schedule {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .connector-detail {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--gold-dim);
+            margin-top: 4px;
+            max-width: 320px;
+        }
+
+        .connector-detail.error {
+            color: var(--red);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: statusPulse 2s infinite;
+        }
+
+        .status-dot.green {
+            background: var(--green);
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        .status-dot.amber {
+            background: var(--amber);
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+        }
+
+        .status-dot.red {
+            background: var(--red);
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* BOTTOM BAR */
+        .bottom-bar {
+            background: var(--obsidian);
+            border-top: 1px solid rgba(201, 168, 76, 0.1);
+            padding: 30px 0;
+        }
+
+        .bottom-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .bottom-brand {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+        }
+
+        .bottom-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .bottom-links a {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--gold-dim);
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            transition: color 0.3s ease;
+        }
+
+        .bottom-links a:hover {
+            color: var(--gold);
+        }
+
+        /* ANIMATIONS */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* REFRESH INDICATOR */
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            background: var(--obsidian-light);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(201, 168, 76, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .refresh-indicator.active {
+            opacity: 1;
+        }
+
+        .refresh-indicator::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 8px;
+            animation: statusPulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+
+<div class="refresh-indicator" id="refreshIndicator">Live Data • Updating...</div>
+
+<!-- HERO SECTION -->
+<section class="hero" id="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">STUDEX NEXUS</h1>
+        <p class="hero-tagline">Tip of the Spear</p>
+        <div class="gold-accent"></div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-value" data-count="847">0</span>
+                <span class="hero-stat-label">Posts Generated</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-value" data-count="94">0</span>
+                <span class="hero-stat-label">Influencers</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-value" data-count="2.4">0</span>
+                <span class="hero-stat-label">M Engagement</span>
+            </div>
+        </div>
+    </div>
+    <div class="scroll-indicator">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+    </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+
+    <!-- AUTO-MEAT COMMAND CENTRE -->
+    <section class="command-centre fade-in">
+        <div class="section-header">
+            <h2 class="section-title">Auto-Meat Command Centre</h2>
+        </div>
+        <div class="command-grid">
+            <div class="command-item">
+                <div class="command-label">System Status</div>
+                <div class="command-value status-active" id="systemStatus">ACTIVE</div>
+            </div>
+            <div class="command-item">
+                <div class="command-label">Last Run</div>
+                <div class="command-value" id="lastRun">Today 06:47</div>
+            </div>
+            <div class="command-item">
+                <div class="command-label">Next Run</div>
+                <div class="command-value" id="nextRun">Today 12:47</div>
+            </div>
+            <div class="command-item">
+                <div class="command-label">Recommendations Today</div>
+                <div class="command-value" id="recsToday">23</div>
+            </div>
+            <div class="command-item">
+                <div class="command-label">Approved</div>
+                <div class="command-value status-active" id="approvedToday">18</div>
+            </div>
+            <div class="command-item">
+                <div class="command-label">Pending Review</div>
+                <div class="command-value status-warning" id="pendingReview">5</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SYSTEM STATUS -->
+    <section class="fade-in">
+        <div class="section-header">
+            <h2 class="section-title">System Status</h2>
+        </div>
+        <div class="workflow-grid" id="connectorGrid"></div>
+    </section>
+
+    <!-- ASK BRAIN -->
+    <section class="fade-in">
+        <div class="section-header">
+            <h2 class="section-title">Ask Brain</h2>
+        </div>
+        <div class="command-centre" style="margin-bottom: 0;">
+            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                <div style="flex:0 0 200px;">
+                    <div class="command-label" style="margin-bottom:8px;">Role</div>
+                    <select id="brainRole" class="login-input" style="margin-bottom:0; text-align:left;">
+                        <option>Chief of Staff</option>
+                        <option>CMO</option>
+                        <option>CTO</option>
+                        <option>CFO</option>
+                        <option>COO</option>
+                        <option>CSO</option>
+                        <option>CRO</option>
+                        <option>Critic</option>
+                    </select>
+                </div>
+                <div style="flex:1 1 320px;">
+                    <div class="command-label" style="margin-bottom:8px;">Question</div>
+                    <input type="text" id="brainQuestion" class="login-input" style="margin-bottom:0; text-align:left;" placeholder="Ask your agent something...">
+                </div>
+                <button class="btn btn-approve" id="brainAskBtn" onclick="askBrain()" style="padding:16px 24px;">Ask</button>
+            </div>
+            <div id="brainResult" style="margin-top:24px; display:none;">
+                <div class="command-label">Answer</div>
+                <p id="brainAnswer" style="margin-top:8px; font-size:1.05rem; white-space:pre-wrap;"></p>
+                <div id="brainNotePath" class="connector-detail" style="margin-top:8px;"></div>
+            </div>
+            <div id="brainError" class="login-error" style="display:none; text-align:left; margin-top:16px;"></div>
+        </div>
+    </section>
+
+    <!-- CONTENT ENGINE -->
+    <section class="fade-in">
+        <div class="section-header">
+            <h2 class="section-title">Content Engine</h2>
+        </div>
+        <div class="content-engine">
+
+            <!-- Scheduled -->
+            <div class="content-column">
+                <div class="column-header">
+                    <span class="column-title">Scheduled</span>
+                    <span class="column-count">7 Posts</span>
+                </div>
+                <div id="scheduledPosts">
+                    <div class="post-item">
+                        <div class="post-platform">Facebook • Instagram</div>
+                        <div class="post-caption">New season, new edges. Our copper collection drops Monday. Tag someone who needs the upgrade.</div>
+                        <div class="post-time">Tomorrow, 09:00 AM</div>
+                    </div>
+                    <div class="post-item">
+                        <div class="post-platform">Instagram Reels</div>
+                        <div class="post-caption">Behind the scenes at our Johannesburg workshop. Real craftsmen, real quality.</div>
+                        <div class="post-time">Tomorrow, 12:00 PM</div>
+                    </div>
+                    <div class="post-item">
+                        <div class="post-platform">Facebook</div>
+                        <div class="post-caption">Customer spotlight: @Thabo_M plays the long game. Two years, zero tangles.</div>
+                        <div class="post-time">Mar 18, 10:30 AM</div>
+                    </div>
+                    <div class="post-item">
+                        <div class="post-platform">Instagram</div>
+                        <div class="post-caption">The difference is in the detail. Premium synthetic fiber that moves like the real thing.</div>
+                        <div class="post-time">Mar 19, 02:00 PM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approval Queue -->
+            <div class="content-column">
+                <div class="column-header">
+                    <span class="column-title">Approval Queue</span>
+                    <span class="column-count">5 Pending</span>
+                </div>
+                <div id="pendingPosts">
+                    <div class="post-item pending">
+                        <div class="post-platform">Instagram</div>
+                        <div class="post-caption">Weekend vibes only. Lock in your look for Saturday. #StudexSA #HairGoals</div>
+                        <div class="post-time">Awaiting approval</div>
+                    </div>
+                    <div class="post-item pending">
+                        <div class="post-platform">Facebook</div>
+                        <div class="post-caption">Easter special incoming. First 50 customers get free shipping. Studex Meat Szn.</div>
+                        <div class="post-time">Awaiting approval</div>
+                    </div>
+                    <div class="post-item pending">
+                        <div class="post-platform">Instagram Stories</div>
+                        <div class="post-caption">Quick tip Tuesday: Detangle from ends up. Your hair will thank you later.</div>
+                        <div class="post-time">Awaiting approval</div>
+                    </div>
+                    <div class="post-item pending">
+                        <div class="post-platform">Instagram</div>
+                        <div class="post-caption">The Studex difference explained in 60 seconds. Quality you can see and feel.</div>
+                        <div class="post-time">Awaiting approval</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posted Today -->
+            <div class="content-column">
+                <div class="column-header">
+                    <span class="column-title">Posted Today</span>
+                    <span class="column-count">3 Complete</span>
+                </div>
+                <div id="postedPosts">
+                    <div class="post-item approved">
+                        <div class="post-platform">Instagram • Facebook</div>
+                        <div class="post-caption">Monday motivation hits different when your edges are laid. Start your week right.</div>
+                        <div class="post-time">Posted 08:15 AM • 12.4K reach</div>
+                    </div>
+                    <div class="post-item approved">
+                        <div class="post-platform">Instagram</div>
+                        <div class="post-caption">New DM response time just dropped: under 2 hours. We're here for you. 💪</div>
+                        <div class="post-time">Posted 10:30 AM • 8.7K reach</div>
+                    </div>
+                    <div class="post-item approved">
+                        <div class="post-platform">Facebook</div>
+                        <div class="post-caption">Bulk orders now available. Got a squad? Studex Meat has you covered. DM for pricing.</div>
+                        <div class="post-time">Posted 02:45 PM • 6.2K reach</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AGENT RECOMMENDATIONS -->
+    <section class="fade-in">
+        <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+            <h2 class="section-title">Agent Recommendations</h2>
+            <button class="btn btn-approve" id="generateBtn" onclick="generateRecommendations()" style="letter-spacing:0.08em;">Generate Recommendations</button>
+        </div>
+        <div class="recommendations-list" id="recommendationsList"></div>
+    </section>
+
+    <!-- INFLUENCER PORTAL -->
+    <section class="influencer-portal fade-in">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Influencer Portal</h2>
+            </div>
+
+            <div class="login-form" id="loginForm">
+                <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;">Enter your portal access code to view your personalized content recommendations.</p>
+                <input type="password" class="login-input" id="portalPassword" placeholder="Enter access code">
+                <button class="btn btn-login" onclick="checkPortalLogin()">Access Portal</button>
+                <p class="login-error" id="loginError">Invalid access code. Please try again.</p>
+            </div>
+
+            <div class="portal-content" id="portalContent">
+                <div class="portal-header">
+                    <div>
+                        <h3 class="influencer-name">Welcome, @Lerato_Styles</h3>
+                        <p style="color: var(--text-secondary); font-family: 'Space Mono', monospace; font-size: 0.7rem; margin-top: 4px;">Influencer ID: INF-0042 • Gold Tier</p>
+                    </div>
+                    <button class="btn btn-logout" onclick="logoutPortal()">Logout</button>
+                </div>
+
+                <div class="influencer-post">
+                    <div class="influencer-post-header">
+                        <span class="rec-topic" style="font-size: 1.1rem;">Your Recommended Post</span>
+                        <span class="influencer-post-status status-approved">Approved</span>
+                    </div>
+                    <p class="rec-caption">"Three months with Studex Meat. Zero shedding, zero regrets. The community is speaking—listen up."</p>
+                    <textarea class="edit-caption" id="editCaption1">Three months with Studex Meat. Zero shedding, zero regrets. The community is speaking—listen up.</textarea>
+                    <div class="influencer-post-actions">
+                        <button class="btn btn-edit" onclick="saveCaption(1)">Save Changes</button>
+                        <button class="btn btn-approve" style="padding: 10px 24px;">Post Now</button>
+                    </div>
+                </div>
+
+                <div class="influencer-post">
+                    <div class="influencer-post-header">
+                        <span class="rec-topic" style="font-size: 1.1rem;">Campaign: Summer Collection</span>
+                        <span class="influencer-post-status status-pending">Pending Approval</span>
+                    </div>
+                    <p class="rec-caption">"Lightweight. Breathable. Undetectable. Our summer line drops in 14 days. Be first in line."</p>
+                    <textarea class="edit-caption" id="editCaption2">Lightweight. Breathable. Undetectable. Our summer line drops in 14 days. Be first in line.</textarea>
+                    <div class="influencer-post-actions">
+                        <button class="btn btn-edit" onclick="saveCaption(2)">Save Changes</button>
+                        <button class="btn btn-approve" style="padding: 10px 24px;">Submit for Review</button>
+                    </div>
+                </div>
+
+                <div class="influencer-post">
+                    <div class="influencer-post-header">
+                        <span class="rec-topic" style="font-size: 1.1rem;">Story Series: Hair Care Tips</span>
+                        <span class="influencer-post-status status-rejected">Draft</span>
+                    </div>
+                    <p class="rec-caption">"Detangle from ends up. Your hair will thank you later. Full tutorial in my highlights."</p>
+                    <textarea class="edit-caption" id="editCaption3">Detangle from ends up. Your hair will thank you later. Full tutorial in my highlights.</textarea>
+                    <div class="influencer-post-actions">
+                        <button class="btn btn-edit" onclick="saveCaption(3)">Save Changes</button>
+                        <button class="btn btn-login" style="padding: 10px 24px; background: var(--gold-dim);">Resubmit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STUDEX MEAT LIVE -->
+    <section class="meat-live fade-in">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Studex Meat Live</h2>
+            </div>
+            <div class="live-counters">
+                <div class="counter-card">
+                    <div class="counter-value" id="postsThisWeek">47</div>
+                    <div class="counter-label">Posts This Week</div>
+                    <div class="counter-sub">+12 vs last week</div>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-value" id="engagementRate">4.8%</div>
+                    <div class="counter-label">Engagement Rate</div>
+                    <div class="counter-sub">+0.6% vs last week</div>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-value small" id="topPost">12.4K</div>
+                    <div class="counter-label">Top Post Reach</div>
+                    <a href="#" class="top-post-link">View Post →</a>
+                </div>
+                <div class="counter-card">
+                    <div class="counter-value" id="ordersExpress">156</div>
+                    <div class="counter-label">Orders via Stitch Express</div>
+                    <div class="counter-sub">R 89,400 value</div>
+                </div>
+            </div>
+
+            <!-- N8N Workflow Status -->
+            <div class="workflow-status">
+                <div class="section-header" style="margin-top: 80px;">
+                    <h2 class="section-title">N8N Workflow Status</h2>
+                </div>
+                <div class="workflow-grid" id="workflowGrid">
+                    <div class="workflow-card">
+                        <div class="workflow-info">
+                            <h4>Daily Content Gen</h4>
+                            <div class="workflow-schedule">Daily at 07:00</div>
+                        </div>
+                        <div class="status-dot green"></div>
+                    </div>
+                    <div class="workflow-card">
+                        <div class="workflow-info">
+                            <h4>Auto-Meat Engine</h4>
+                            <div class="workflow-schedule">Every 6 hours</div>
+                        </div>
+                        <div class="status-dot green"></div>
+                    </div>
+                    <div class="workflow-card">
+                        <div class="workflow-info">
+                            <h4>Approval Gate</h4>
+                            <div class="workflow-schedule">On-demand</div>
+                        </div>
+                        <div class="status-dot green"></div>
+                    </div>
+                    <div class="workflow-card">
+                        <div class="workflow-info">
+                            <h4>Posting Pipeline</h4>
+                            <div class="workflow-schedule">Scheduled posts</div>
+                        </div>
+                        <div class="status-dot green"></div>
+                    </div>
+                    <div class="workflow-card">
+                        <div class="workflow-info">
+                            <h4>Influencer Sync</h4>
+                            <div class="workflow-schedule">Every 4 hours</div>
+                        </div>
+                        <div class="status-dot amber"></div>
+                    </div>
+                    <div class="workflow-card">
+                        <div class="workflow-info">
+                            <h4>Analytics Collector</h4>
+                            <div class="workflow-schedule">Every 15 min</div>
+                        </div>
+                        <div class="status-dot green"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<footer class="bottom-bar">
+    <div class="container">
+        <div class="bottom-content">
+            <div class="bottom-brand">Studex Nexus v3 | Powered by Naledi AI Platform | 2026</div>
+            <div class="bottom-links">
+                <a href="https://studexmeat.com" target="_blank">studexmeat.com</a>
+                <a href="https://n8n.cloud" target="_blank">N8N Cloud</a>
+                <a href="#hero">Back to Top</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

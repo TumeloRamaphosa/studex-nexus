@@ -1,0 +1,25 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+data/*.json
+!data/.gitkeep
+
+# IDE / workspace state
+.cursor/
+.vscode/
+.idea/
+
+# Build artifacts
+node_modules/
+dist/
+build/
+*.log
+
+# Secrets — hard rule
+.env.local
+.env.*.local
+secrets/
+*.key
+*.pem
+service-account*.json
