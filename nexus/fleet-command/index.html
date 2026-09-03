@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studex Fleet Command</title>
+<style>
+  :root { color-scheme: dark; }
+  .app {
+    color-scheme: dark;
+    --surface-1: #1e1e1c;   /* charcoal card */
+    --page: #151514;        /* charcoal base */
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8b8983;
+    --grid: #2e2e2b;
+    --baseline: #3b3b37;
+    --border: rgba(255,255,255,0.12);
+    --acc-1: #eb6834;       /* orange — lead accent */
+    --acc-2: #ffd21e;       /* luminous yellow */
+    --acc-3: #ef8fb5;       /* pink finish */
+    --acc-1-ink: #161615;   /* text on orange */
+    --st-good: #0ca30c;
+    --st-warn: #fab219;
+    --st-serious: #ec835a;
+    --st-crit: #d03b3b;
+    --delta-good: #0ca30c;
+    --chip-wash: rgba(255,255,255,0.06);
+    --glow: rgba(235,104,52,0.10);
+  }
+  :root[data-theme="light"] .app {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.14);
+    --acc-1: #d1481a;
+    --acc-2: #a87200;
+    --acc-3: #c23e6d;
+    --acc-1-ink: #ffffff;
+    --delta-good: #006300;
+    --chip-wash: rgba(11,11,11,0.045);
+    --glow: rgba(209,72,26,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  .app {
+    min-height: 100vh;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  /* ── topbar as terminal prompt ─────────────────────────── */
+  header.topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--grid);
+    background: var(--surface-1);
+    position: sticky; top: 0; z-index: 30;
+    flex-wrap: wrap;
+  }
+  .prompt { font-size: 14px; font-weight: 600; letter-spacing: 0; white-space: nowrap; }
+  .prompt .u { color: var(--acc-1); }
+  .prompt .p { color: var(--acc-3); }
+  .prompt .cmd { color: var(--text-primary); }
+  .cursor { display: inline-block; width: 8px; height: 15px; background: var(--text-primary); vertical-align: text-bottom; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .spacer { flex: 1; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 11px; border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 12px; color: var(--text-secondary);
+    background: var(--chip-wash);
+    white-space: nowrap;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  button, .btn {
+    font: inherit; font-size: 12.5px;
+    color: var(--text-primary);
+    background: var(--chip-wash);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 11px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  button:hover, .btn:hover { border-color: var(--text-muted); background: var(--glow); }
+  button.primary { background: var(--acc-1); color: var(--acc-1-ink); border-color: transparent; font-weight: 700; }
+  
+  button.ghost { background: transparent; }
+  button.small { padding: 2px 8px; font-size: 11.5px; }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 18px 20px 60px; }
+
+  /* ── stat tiles ────────────────────────────────────────── */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .tile {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 14px;
+    position: relative; overflow: hidden;
+  }
+  .tile::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--baseline); }
+  .tile.t-good::before { background: var(--acc-1); }
+  .tile.t-blue::before { background: var(--acc-3); }
+  .tile .label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .tile .label::before { content: '# '; color: var(--baseline); }
+  .tile .value { font-size: 26px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .tile .hint { font-size: 11.5px; color: var(--text-secondary); margin-top: 3px; }
+
+  /* ── panels ────────────────────────────────────────────── */
+  section.panel {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0; margin-bottom: 16px; overflow: hidden;
+  }
+  .panel > .phead {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; border-bottom: 1px solid var(--grid);
+    background: transparent;
+  }
+  .panel h2 { font-size: 13px; color: var(--text-primary); font-weight: 700; letter-spacing: 0.02em; }
+  .panel h2 .path { color: var(--acc-1); }
+  .panel h2 .comment { color: var(--text-muted); font-weight: 400; }
+  .panel .pbody { padding: 14px; }
+  .panel .phead .meta { font-size: 11.5px; color: var(--text-secondary); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 1000px) { .grid2 { grid-template-columns: 1.55fr 1fr; } }
+  .fleetgrid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 1000px) { .fleetgrid { grid-template-columns: 1fr 1fr; } }
+
+  /* ── machine cards ─────────────────────────────────────── */
+  .fleet { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .mcard {
+    border: 1px solid var(--border); border-left-width: 3px; border-radius: 6px;
+    padding: 10px 12px;
+    background: var(--page);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .mcard.is-online { border-left-color: var(--st-good); }
+  .mcard.is-offline { border-left-color: var(--st-crit); }
+  .mcard.is-nosig { border-left-color: var(--baseline); }
+  .mcard .row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .mcard .hostname { font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+  .mcard .hostname::before { content: '> '; color: var(--acc-1); }
+  .mcard .self-tag { font-size: 10px; border: 1px solid var(--acc-2); color: var(--acc-2); border-radius: 3px; padding: 0 5px; font-weight: 700; }
+  .status { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; margin-left: auto; }
+  .mcard .kv { font-size: 12px; color: var(--text-secondary); display: grid; grid-template-columns: 68px 1fr; gap: 1px 8px; }
+  .mcard .kv .k { color: var(--text-muted); }
+  .mcard .kv .k::before { content: '--'; color: var(--baseline); margin-right: 4px; }
+  .mcard .kv .v { color: var(--text-primary); overflow-wrap: anywhere; }
+  .mcard .kv .v.dim { color: var(--text-secondary); }
+  .mcard .foot { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 2px; }
+  .tagpill { font-size: 10.5px; padding: 0 7px; border-radius: 3px; background: var(--chip-wash); border: 1px solid var(--border); color: var(--text-secondary); }
+
+  /* ── roster table ──────────────────────────────────────── */
+  table.roster { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .roster th {
+    text-align: left; font-size: 11px; color: var(--acc-2); font-weight: 700;
+    padding: 6px 8px; border-bottom: 1px solid var(--grid);
+  }
+  .roster td { padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--text-secondary); }
+  .roster td:first-child { color: var(--text-primary); font-weight: 700; }
+  .roster tr:last-child td { border-bottom: none; }
+  .roster tr:hover td { background: var(--chip-wash); }
+
+  /* ── activity feed as log ──────────────────────────────── */
+  .feed { list-style: none; max-height: 380px; overflow-y: auto; font-size: 12px; }
+  .feed li { display: flex; gap: 10px; padding: 5px 2px; border-bottom: 1px dashed var(--grid); }
+  .feed li:last-child { border-bottom: none; }
+  .feed .t { color: var(--acc-2); flex: none; }
+  .feed .t::before { content: '['; color: var(--text-muted); }
+  .feed .t::after { content: ']'; color: var(--text-muted); }
+  .feed .msg { color: var(--text-secondary); overflow-wrap: anywhere; }
+
+  .wikilinks { display: flex; flex-direction: column; gap: 9px; font-size: 12.5px; }
+  .wikilinks a { color: var(--acc-2); text-decoration: none; font-weight: 700; }
+  .wikilinks a:hover { text-decoration: underline; }
+  .wikilinks .wrow { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .wikilinks .desc { color: var(--text-muted); font-size: 11.5px; }
+  .wikilinks input { font: inherit; font-size: 12px; background: var(--page); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; width: 110px; }
+
+  /* ── dialogs ───────────────────────────────────────────── */
+  dialog {
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); color: var(--text-primary);
+    padding: 20px; width: min(580px, 92vw);
+    font-family: inherit;
+  }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  dialog h3 { font-size: 14px; margin-bottom: 3px; }
+  dialog h3::before { content: '$ '; color: var(--acc-1); }
+  dialog .dsub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+  .field { margin-bottom: 11px; }
+  .field label { display: block; font-size: 11.5px; color: var(--acc-2); margin-bottom: 3px; font-weight: 700; }
+  .field input[type=text], .field input[type=password], .field textarea, .field select {
+    width: 100%; font: inherit; font-size: 12.5px;
+    background: var(--page); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 4px; padding: 7px 9px;
+  }
+  .field textarea { min-height: 110px; font-size: 11.5px; }
+  .field .note { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .dactions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap; }
+  .srcTabs { display: flex; gap: 6px; margin-bottom: 13px; flex-wrap: wrap; }
+  .srcTabs button[aria-pressed="true"] { background: var(--acc-1); color: var(--acc-1-ink); border-color: transparent; font-weight: 700; }
+  
+  .banner {
+    border: 1px solid var(--border); border-left: 3px solid var(--st-warn);
+    border-radius: 4px; padding: 9px 11px; font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 11px; background: var(--chip-wash);
+  }
+  .empty { color: var(--text-muted); font-size: 12.5px; padding: 14px 4px; }
+  .empty::before { content: '// '; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="prompt"><span class="u">studex@command</span><span class="p">:~/fleet</span><span class="cmd">$ watch --all</span> <span class="cursor"></span></div>
+    <div class="spacer"></div>
+    <span class="chip" id="connChip"><span class="dot" style="background:var(--text-muted)"></span><span id="connText">no data source</span></span>
+    <button class="ghost" id="refreshBtn" title="Refresh now">⟳ sync</button>
+    <button id="settingsBtn">⚙ source</button>
+    <button class="ghost" id="themeBtn" title="Toggle light/dark">◐</button>
+  </header>
+
+  <main>
+    <div class="tiles">
+      <div class="tile t-good"><div class="label">machines.online</div><div class="value" id="tOnline">–</div><div class="hint" id="tOnlineHint">of – registered</div></div>
+      <div class="tile t-blue"><div class="label">agents.active</div><div class="value" id="tAgents">–</div><div class="hint" id="tAgentsHint">of – on roster</div></div>
+      <div class="tile"><div class="label">events.count</div><div class="value" id="tEvents">0</div><div class="hint">this session</div></div>
+      <div class="tile"><div class="label">sync.last</div><div class="value" id="tSync" style="font-size:19px">never</div><div class="hint" id="tSyncHint">source: none</div></div>
+    </div>
+
+    <div class="fleetgrid">
+      <section class="panel">
+        <div class="phead">
+          <h2><span class="path">./hardware</span> <span class="comment">// physical metal</span></h2>
+          <span class="meta" id="hwMeta"></span>
+          <div class="spacer"></div>
+          <button class="small" data-addmachine="hw">+ machine</button>
+        </div>
+        <div class="pbody"><div class="fleet" id="fleetHw"></div></div>
+      </section>
+      <section class="panel">
+        <div class="phead">
+          <h2><span class="path">./virtual-machines</span> <span class="comment">// cloud &amp; clients</span></h2>
+          <span class="meta" id="vmMeta"></span>
+          <div class="spacer"></div>
+          <button class="small" data-addmachine="vm">+ vm</button>
+        </div>
+        <div class="pbody"><div class="fleet" id="fleetVm"></div></div>
+      </section>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <section class="panel">
+          <div class="phead">
+            <h2><span class="path">./agents</span> <span class="comment">// roster</span></h2>
+            <span class="meta" id="rosterMeta"></span>
+            <div class="spacer"></div>
+            <button class="small" id="addAgentBtn">+ agent</button>
+            <button class="small ghost" id="exportBtn" title="Download registry + roster as JSON">export</button>
+            <button class="small ghost" id="importBtn" title="Load a previously exported JSON">import</button>
+            <input type="file" id="importFile" accept="application/json" class="visually-hidden">
+          </div>
+          <div class="pbody">
+          <table class="roster" aria-label="Agent roster">
+            <thead><tr><th>agent</th><th>role</th><th>runs_on</th><th>status</th><th>heartbeat</th><th></th></tr></thead>
+            <tbody id="rosterBody"></tbody>
+          </table>
+          </div>
+        </section>
+      </div>
+      <div>
+        <section class="panel">
+          <div class="phead"><h2><span class="path">./log</span> <span class="comment">// activity</span></h2><div class="spacer"></div><button class="small ghost" id="clearFeedBtn">clear</button></div>
+          <div class="pbody"><ul class="feed" id="feed"></ul></div>
+        </section>
+        <section class="panel">
+          <div class="phead"><h2><span class="path">./wiki</span> <span class="comment">// second brain</span></h2></div>
+          <div class="pbody wikilinks">
+            <div class="wrow">📖 <a href="https://app.notion.com/p/3a03ef07399281a5b7e3f8cd77ba4d47" target="_blank" rel="noopener">Studex Fleet Command — Wiki (Notion)</a></div>
+            <div class="wrow desc">source of truth · machines, agents, runbooks</div>
+            <div class="wrow">🧠 <span class="desc">obsidian vault:</span> <input type="text" id="vaultName" value="StudEx Cognitive System" style="width:180px" title="Obsidian vault name for machine note links"></div>
+            <div class="wrow">🗂 <a href="obsidian://open?vault=StudEx%20Cognitive%20System&file=Agents%20Roster%2FFleet%20Command">Agents Roster / Fleet Command (Obsidian)</a></div>
+    <div class="wrow desc">cards link to per-machine notes: Agents Roster/Machines/&lt;hostname&gt;.md</div>
+    <div class="wrow">⚡ <a href="https://studex-group.communities.buzz.xyz" target="_blank" rel="noopener">buzz relay — fleet comms (Nostr)</a></div>
+    <div class="wrow desc">claude npub: npub1ttzkutx…e6t7sh · bridge: nostr-bridge on macmini-m4 (pending)</div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="settingsDlg">
+    <h3>fleet --source</h3>
+    <div class="dsub">how should the board get live Tailscale data?</div>
+    <div class="srcTabs" role="tablist">
+      <button data-src="relay" aria-pressed="true">local relay</button>
+      <button data-src="api" aria-pressed="false">tailscale api</button>
+      <button data-src="paste" aria-pressed="false">paste json</button>
+      <button data-src="demo" aria-pressed="false">demo data</button>
+    </div>
+    <div data-pane="relay">
+      <div class="banner">recommended. run <b>studex-fleet-relay.py</b> on any tailnet machine — it serves Tailscale data with CORS enabled. registered machines light up automatically when hostnames match.</div>
+      <div class="field"><label for="relayUrl">relay url</label><input type="text" id="relayUrl" value="http://localhost:8787/devices"></div>
+    </div>
+    <div data-pane="api" hidden>
+      <div class="banner">⚠ browsers usually block direct calls to api.tailscale.com (no CORS). if this fails, use the relay. key lives in page memory only — never stored.</div>
+      <div class="field"><label for="apiKey">api key (tskey-api-…)</label><input type="password" id="apiKey" placeholder="tskey-api-…"></div>
+      <div class="field"><label for="tailnet">tailnet</label><input type="text" id="tailnet" value="-"><div class="note">"-" = your default tailnet.</div></div>
+    </div>
+    <div data-pane="paste" hidden>
+      <div class="field">
+        <label for="pasteBox">paste `tailscale status --json` or API `{"devices":[…]}`</label>
+        <textarea id="pasteBox" spellcheck="false" placeholder='{"Self":{…},"Peer":{…}}'></textarea>
+      </div>
+    </div>
+    <div data-pane="demo" hidden>
+      <div class="banner">loads sample telemetry onto the registered fleet so you can explore before wiring live data.</div>
+    </div>
+    <div class="dactions">
+      <button class="ghost" id="dlgClose">close</button>
+      <button class="primary" id="dlgConnect">connect</button>
+    </div>
+  </dialog>
+
+  <dialog id="machineDlg">
+    <h3 id="machineDlgTitle">machine --add</h3>
+    <div class="dsub">registry lives in this page; export to save, import to restore.</div>
+    <div class="field"><label for="mName">hostname / name</label><input type="text" id="mName" placeholder="macmini-m4"></div>
+    <div class="field"><label for="mKind">section</label>
+      <select id="mKind"><option value="hw">hardware</option><option value="vm">virtual machine</option></select></div>
+    <div class="field"><label for="mRole">role</label><input type="text" id="mRole" placeholder="coordinator · router · dashboard"></div>
+    <div class="field"><label for="mSpecs">specs / notes</label><input type="text" id="mSpecs" placeholder="Mac mini M4 · 16GB"></div>
+    <div class="field"><label for="mUrl">console url (orgo / provider)</label><input type="text" id="mUrl" placeholder="https://www.orgo.ai/desktops/…"></div>
+    <div class="field"><label for="mAliases">tailscale hostname aliases (comma-separated)</label><input type="text" id="mAliases" placeholder="mac-mini,macmini"><div class="note">live devices match on name or any alias.</div></div>
+    <div class="dactions">
+      <button class="ghost" id="mDelete" style="margin-right:auto;color:var(--st-crit)" hidden>delete</button>
+      <button class="ghost" id="mCancel">cancel</button>
+      <button class="primary" id="mSave">save</button>
+    </div>
+  </dialog>
+
+  <dialog id="agentDlg">
+    <h3 id="agentDlgTitle">agent --add</h3>
+    <div class="dsub">roster lives in this page; export to save, import to restore.</div>
+    <div class="field"><label for="agName">name</label><input type="text" id="agName" placeholder="atlas-orchestrator"></div>
+    <div class="field"><label for="agRole">role / mandate</label><input type="text" id="agRole" placeholder="fleet orchestrator — schedules jobs across workers"></div>
+    <div class="field"><label for="agMachine">runs on (hostname)</label><input type="text" id="agMachine" placeholder="macmini-m4"></div>
+    <div class="field"><label for="agStatus">status</label>
+      <select id="agStatus"><option value="active">active</option><option value="paused">paused</option><option value="degraded">degraded</option><option value="retired">retired</option></select>
+    </div>
+    <div class="field"><label for="agHeartbeat">heartbeat</label><input type="text" id="agHeartbeat" placeholder="cron */15min → Supabase"></div>
+    <div class="dactions">
+      <button class="ghost" id="agDelete" style="margin-right:auto;color:var(--st-crit)" hidden>delete</button>
+      <button class="ghost" id="agCancel">cancel</button>
+      <button class="primary" id="agSave">save</button>
+    </div>
+  </dialog>
+</div>
+<script>
+'use strict';
+/* ═══ state (in-memory only; persist via export/import) ═══ */
+const state = {
+  source: null, relayUrl: 'http://localhost:8787/devices', apiKey: '', tailnet: '-',
+  registry: [
+    // hardware — the metal
+    { name: 'desktop-v2hn142', kind: 'hw', role: 'Founder workstation · Cowork bridge', specs: 'Windows + WSL', url: '', aliases: [] },
+    { name: 'windows-inference', kind: 'hw', role: 'Primary heavy inference worker', specs: 'Windows · 32 GB GPU', url: '', aliases: [] },
+    { name: 'macbook-m1max', kind: 'hw', role: 'Apple Silicon MLX / Ollama worker', specs: 'MacBook Pro M1 Max', url: '', aliases: [] },
+    { name: 'macmini-m4', kind: 'hw', role: 'Coordinator · router · dashboard · light services', specs: 'Mac mini M4', url: '', aliases: [] },
+    { name: 'razer-blade', kind: 'hw', role: 'Medium models · coding worker', specs: 'Razer · 32 GB RAM / 8 GB GPU', url: '', aliases: [] },
+    { name: 'msi-claw-8', kind: 'hw', role: 'Portable small-model / automation worker', specs: 'MSI Claw 8 · Pop!_OS', url: '', aliases: [] },
+    { name: 'legion-go', kind: 'hw', role: 'Portable small-model / automation worker', specs: 'Lenovo Legion Go · Pop!_OS', url: '', aliases: [] },
+    // virtual machines — cloud & clients
+    { name: 'africa-buiz', kind: 'vm', role: 'Client VM — Africa Buiz', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/ce05a5b6', aliases: [] },
+    { name: 'scale', kind: 'vm', role: 'Client VM — Scale', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/9666e8c9', aliases: [] },
+    { name: 'global-markets', kind: 'vm', role: 'Studex Global Markets VM', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/5f02c426', aliases: [] },
+    { name: 'naledi', kind: 'vm', role: 'Client VM — Naledi', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/422b7be1', aliases: [] },
+    { name: 'solo-prenure', kind: 'vm', role: 'Client VM — Solo Prenure', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/7cffcd92', aliases: [] },
+    { name: 'dark-factory', kind: 'vm', role: 'Dark Factory VM', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/a032e05e', aliases: [] },
+    { name: 'project-2571', kind: 'vm', role: 'Project 2571 VM', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/7f707a37', aliases: [] },
+    { name: 'kiloclaw-rs1', kind: 'vm', role: 'OpenClaw agent host — client RS1', specs: 'kiloclaw.ai instance', url: 'https://i-62ef4592c6d9451bbab112d8253d4ae9.kiloclaw.ai/chat?session=main', aliases: [] },
+    { name: 'gpu-burst', kind: 'vm', role: 'Cloud GPU burst workers — 70B-class jobs, join tailnet on demand', specs: 'ephemeral', url: '', aliases: [] },
+    { name: 'spark-engine-vm', kind: 'vm', role: 'Host of spark-engine agent — tailnet join pending authkey', specs: '2-core Xeon · 7 GB RAM · Ubuntu 24.04 · Octopoda v3.3.4', url: '', aliases: ['spark-engine'] },
+    { name: 'orgo-84fc17f7', kind: 'vm', role: 'Orgo desktop shared 2026-09-01 — role pending assignment', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/84fc17f7', aliases: [] }
+  ],
+  agents: [
+    { name: 'claude-chairman', role: 'Fleet Command chairman — orchestration, wiki, dashboards (Cowork)', machine: 'anthropic cloud', status: 'active', heartbeat: 'session-based', email: 'via founder / relay bridge' },
+    { name: 'robusca-romanov', role: 'Chief of Staff', machine: '—', status: 'active', heartbeat: 'email', email: 'robusca.romanov@studex-group.com' },
+    { name: 'naledi-cmo', role: 'CMO — client comms, payments (PayFast verified 2026-07-08)', machine: '—', status: 'active', heartbeat: 'email', email: 'naledi.cmo@studex-group.com' },
+    { name: 'studex-2571', role: 'Project 2571 operations', machine: 'project-2571', status: 'active', heartbeat: 'email', email: 'studex-2571@agentmail.to' },
+    { name: 'spark-engine', role: 'Registered 2026-07-27 — Octopoda v3.3.4 active, awaiting tasking + tailnet key', machine: 'spark-engine-vm', status: 'active', heartbeat: 'on-demand', email: 'determinedriver940@agentmail.to' },
+    { name: 'openclaw-rs1', role: 'Client RS1 agent service — memory + conversation backups', machine: 'kiloclaw-rs1', status: 'active', heartbeat: 'cron hourly → backup log' },
+    { name: 'nostr-bridge', role: 'Buzz relay ⇄ Claude bridge — mirrors mentions/DMs to email', machine: 'macmini-m4', status: 'paused', heartbeat: 'daemon (not yet deployed)' },
+    { name: 'atlas-orchestrator', role: 'Fleet orchestrator — dispatches jobs across workers', machine: 'macmini-m4', status: 'paused', heartbeat: 'cron */15min', sample: true },
+    { name: 'scribe-wiki', role: 'Keeps Notion fleet wiki + Obsidian mirror updated', machine: 'macmini-m4', status: 'paused', heartbeat: 'on-change', sample: true },
+    { name: 'watchtower', role: 'Monitors tailnet health, files incidents to feed', machine: 'macmini-m4', status: 'paused', heartbeat: 'cron hourly', sample: true }
+  ],
+  live: [],            // normalized live tailscale devices
+  events: [], timer: null, editIndex: -1, editMachineIndex: -1, prevOnline: null
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ═══ feed ═══ */
+function logEvent(msg) {
+  state.events.unshift({ t: new Date(), msg });
+  if (state.events.length > 200) state.events.length = 200;
+  renderFeed(); renderTiles();
+}
+function renderFeed() {
+  $('feed').innerHTML = state.events.map(e =>
+    `<li><span class="t">${e.t.toTimeString().slice(0,8)}</span><span class="msg">${esc(e.msg)}</span></li>`).join('')
+    || '<li><span class="msg" style="color:var(--text-muted)">// no events yet</span></li>';
+}
+
+/* ═══ normalize tailscale data ═══ */
+function normDevice(d) {
+  return {
+    hostname: d.hostname || d.HostName || (d.name ? d.name.split('.')[0] : 'unknown'),
+    ip: (d.addresses && d.addresses[0]) || (d.TailscaleIPs && d.TailscaleIPs[0]) || '',
+    os: d.os || d.OS || '',
+    lastSeen: d.lastSeen || d.LastSeen || null,
+    online: typeof d.Online === 'boolean' ? d.Online : (d.lastSeen ? (Date.now() - Date.parse(d.lastSeen)) < 5*60*1000 : false),
+    tags: d.tags || d.Tags || [],
+    self: !!d.__self,
+    update: !!d.updateAvailable
+  };
+}
+function parseAny(obj) {
+  if (Array.isArray(obj?.devices)) return obj.devices.map(normDevice);
+  if (obj?.Self || obj?.Peer) {
+    const list = [];
+    if (obj.Self) list.push(normDevice({ ...obj.Self, __self: true }));
+    if (obj.Peer) for (const k of Object.keys(obj.Peer)) list.push(normDevice(obj.Peer[k]));
+    return list;
+  }
+  if (Array.isArray(obj)) return obj.map(normDevice);
+  throw new Error('unrecognized JSON shape');
+}
+
+/* ═══ data sources ═══ */
+async function fetchFleet() {
+  if (state.source === 'demo') { applyLive(demoFleet()); setConn('demo', true); return; }
+  if (state.source === 'paste' || !state.source) return;
+  let url, opts = {};
+  if (state.source === 'relay') url = state.relayUrl;
+  else if (state.source === 'api') {
+    url = `https://api.tailscale.com/api/v2/tailnet/${encodeURIComponent(state.tailnet)}/devices`;
+    opts.headers = { Authorization: 'Bearer ' + state.apiKey };
+  }
+  try {
+    const r = await fetch(url, opts);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    applyLive(parseAny(await r.json()));
+    setConn(state.source, true);
+  } catch (err) {
+    setConn(state.source, false);
+    logEvent(`ERR ${state.source} fetch failed: ${err.message}${state.source==='api' ? ' — likely CORS; use the local relay' : ''}`);
+  }
+}
+function applyLive(list) {
+  const now = {};
+  list.forEach(m => now[m.hostname] = m.online);
+  if (state.prevOnline) {
+    for (const h of Object.keys(now)) {
+      if (state.prevOnline[h] === undefined) logEvent(`+ ${h} joined the board`);
+      else if (state.prevOnline[h] !== now[h]) logEvent(now[h] ? `UP ${h} came online` : `DOWN ${h} went offline`);
+    }
+    for (const h of Object.keys(state.prevOnline)) if (!(h in now)) logEvent(`- ${h} left the board`);
+  }
+  state.prevOnline = now;
+  state.live = list;
+  $('tSync').textContent = new Date().toTimeString().slice(0,8);
+  $('tSyncHint').textContent = 'source: ' + state.source;
+  renderFleet(); renderTiles();
+}
+function setConn(src, ok) {
+  const label = { relay: 'relay', api: 'tailscale api', paste: 'pasted snapshot', demo: 'demo data' }[src] || 'no data source';
+  $('connText').textContent = ok ? label + ' · connected' : label + ' · error';
+  $('connChip').querySelector('.dot').style.background = ok ? 'var(--st-good)' : 'var(--st-crit)';
+}
+
+/* ═══ merge registry + live ═══ */
+function matchLive(entry) {
+  const names = [entry.name.toLowerCase(), ...(entry.aliases||[]).map(a => a.toLowerCase())];
+  return state.live.find(d => names.includes(d.hostname.toLowerCase()));
+}
+function mergedFleet() {
+  const used = new Set();
+  const rows = state.registry.map((e, idx) => {
+    const live = matchLive(e);
+    if (live) used.add(live.hostname);
+    return { ...e, idx, live };
+  });
+  // live devices not in registry
+  state.live.forEach(d => {
+    if (!used.has(d.hostname)) rows.push({
+      name: d.hostname, kind: (d.tags||[]).some(t => /vm|client|cloud/.test(t)) ? 'vm' : 'hw',
+      role: '(unregistered — live on tailnet)', specs: '', url: '', aliases: [], idx: -1, live: d
+    });
+  });
+  return rows;
+}
+
+/* ═══ rendering ═══ */
+function statusOf(row) {
+  if (!row.live) return ['nosig', '◌ no telemetry', 'var(--text-muted)'];
+  return row.live.online ? ['online', '● online', 'var(--st-good)'] : ['offline', '○ offline', 'var(--st-crit)'];
+}
+function cardHtml(row, vault) {
+  const [cls, stText, stColor] = statusOf(row);
+  const l = row.live;
+  const obs = `obsidian://open?vault=${vault}&file=${encodeURIComponent('Agents Roster/Machines/' + row.name)}`;
+  const kv = [];
+  if (row.role) kv.push(['role', esc(row.role), true]);
+  if (row.specs) kv.push(['specs', esc(row.specs), true]);
+  if (l) {
+    kv.push(['ip', esc(l.ip) || '—', false]);
+    if (l.os) kv.push(['os', esc(l.os), false]);
+    kv.push(['seen', l.lastSeen ? esc(relTime(l.lastSeen)) : '—', false]);
+  }
+  return `<div class="mcard is-${cls}">
+    <div class="row1">
+      <span class="hostname">${esc(row.name)}</span>
+      ${l && l.self ? '<span class="self-tag">THIS MACHINE</span>' : ''}
+      ${l && l.update ? '<span class="tagpill" style="color:var(--st-warn);border-color:var(--st-warn)">⬆ update</span>' : ''}
+      <span class="status" style="color:${stColor}">${stText}</span>
+    </div>
+    <div class="kv">${kv.map(([k,v,dim]) => `<span class="k">${k}</span><span class="v${dim?' dim':''}">${v}</span>`).join('')}</div>
+    ${l && l.tags?.length ? `<div class="foot">${l.tags.map(t=>`<span class="tagpill">${esc(t)}</span>`).join('')}</div>` : ''}
+    <div class="foot">
+      ${row.url ? `<a class="btn small ghost" href="${esc(row.url)}" target="_blank" rel="noopener">⇱ console</a>` : ''}
+      ${l && l.ip ? `<button class="small ghost" data-ssh="${esc(l.ip)}" title="copy ssh command">⌁ ssh</button>` : ''}
+      <a class="btn small ghost" href="https://app.notion.com/p/3a03ef07399281a5b7e3f8cd77ba4d47" target="_blank" rel="noopener">wiki</a>
+      <a class="btn small ghost" href="${obs}">note</a>
+      ${row.idx >= 0 ? `<button class="small ghost" data-editmachine="${row.idx}">cfg</button>` : ''}
+    </div>
+  </div>`;
+}
+function renderFleet() {
+  const vault = encodeURIComponent($('vaultName').value || 'Studex');
+  const rows = mergedFleet();
+  const rank = r => r.live ? (r.live.online ? 0 : 1) : 2;
+  const sortFn = (a,b) => rank(a) - rank(b) || a.name.localeCompare(b.name);
+  const hw = rows.filter(r => r.kind === 'hw').sort(sortFn);
+  const vm = rows.filter(r => r.kind === 'vm').sort(sortFn);
+  $('fleetHw').innerHTML = hw.map(r => cardHtml(r, vault)).join('') || '<div class="empty">no hardware registered</div>';
+  $('fleetVm').innerHTML = vm.map(r => cardHtml(r, vault)).join('') || '<div class="empty">no VMs registered</div>';
+  const liveCount = arr => arr.filter(r => r.live?.online).length;
+  $('hwMeta').textContent = `${liveCount(hw)} online / ${hw.length}`;
+  $('vmMeta').textContent = `${liveCount(vm)} online / ${vm.length}`;
+}
+
+const AG_STATUS = { active: ['●','var(--st-good)'], paused: ['◐','var(--text-muted)'], degraded: ['▲','var(--st-serious)'], retired: ['○','var(--text-muted)'] };
+function renderRoster() {
+  $('rosterMeta').textContent = `${state.agents.filter(a=>a.status==='active').length} active / ${state.agents.length}`;
+  $('rosterBody').innerHTML = state.agents.map((a,i) => {
+    const [icon,color] = AG_STATUS[a.status] || AG_STATUS.paused;
+    return `<tr>
+      <td>${esc(a.name)}${a.sample ? ' <span class="tagpill" title="sample entry — edit or delete">sample</span>' : ''}${a.email ? `<div style="font-weight:400;font-size:10.5px;color:var(--text-muted);overflow-wrap:anywhere">${esc(a.email)}</div>` : ''}</td>
+      <td>${esc(a.role)}</td>
+      <td>${esc(a.machine)}</td>
+      <td><span style="color:${color};font-weight:700">${icon} ${esc(a.status)}</span></td>
+      <td>${esc(a.heartbeat)}</td>
+      <td><button class="small ghost" data-edit="${i}">edit</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">no agents on the roster</td></tr>';
+  renderTiles();
+}
+function renderTiles() {
+  const rows = mergedFleet();
+  const on = rows.filter(r => r.live?.online).length;
+  $('tOnline').textContent = state.live.length ? on : '–';
+  $('tOnlineHint').textContent = `of ${rows.length} registered`;
+  $('tAgents').textContent = state.agents.filter(a=>a.status==='active').length;
+  $('tAgentsHint').textContent = `of ${state.agents.length} on roster`;
+  $('tEvents').textContent = state.events.length;
+}
+function relTime(iso) {
+  const s = (Date.now() - Date.parse(iso)) / 1000;
+  if (isNaN(s)) return '—';
+  if (s < 90) return 'just now';
+  if (s < 3600) return Math.round(s/60) + ' min ago';
+  if (s < 86400) return Math.round(s/3600) + ' h ago';
+  return Math.round(s/86400) + ' d ago';
+}
+
+/* ═══ demo data — telemetry for registered hostnames ═══ */
+function demoFleet() {
+  const now = Date.now();
+  const mk = (hostname, os, ip, mins, tags, self) => normDevice({
+    hostname, os, addresses: [ip], lastSeen: new Date(now - mins*60000).toISOString(), tags, __self: self });
+  return [
+    mk('desktop-v2hn142', 'windows', '100.101.1.10', 0, ['tag:founder'], true),
+    mk('macmini-m4', 'macOS', '100.101.1.11', 1, ['tag:coordinator']),
+    mk('macbook-m1max', 'macOS', '100.101.1.12', 2, ['tag:worker']),
+    mk('windows-inference', 'windows', '100.101.1.13', 3, ['tag:worker','tag:gpu']),
+    mk('razer-blade', 'windows', '100.101.1.14', 420, ['tag:worker']),
+    mk('legion-go', 'linux', '100.101.1.15', 55, ['tag:portable']),
+    mk('africa-buiz', 'linux', '100.101.2.10', 4, ['tag:vm','tag:client']),
+    mk('global-markets', 'linux', '100.101.2.11', 2, ['tag:vm']),
+    mk('dark-factory', 'linux', '100.101.2.12', 700, ['tag:vm'])
+  ];
+}
+
+/* ═══ wiring ═══ */
+$('themeBtn').onclick = () => {
+  const r = document.documentElement;
+  r.setAttribute('data-theme', r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+};
+$('vaultName').oninput = () => renderFleet();
+$('refreshBtn').onclick = () => { logEvent('~ manual sync'); fetchFleet(); };
+$('clearFeedBtn').onclick = () => { state.events = []; renderFeed(); renderTiles(); };
+
+document.addEventListener('click', e => {
+  const ssh = e.target?.dataset?.ssh;
+  if (ssh) {
+    navigator.clipboard?.writeText('ssh ' + ssh).then(() => logEvent('⌁ copied: ssh ' + ssh));
+  }
+});
+
+/* source dialog */
+const dlg = $('settingsDlg');
+let pendingSrc = 'relay';
+$('settingsBtn').onclick = () => dlg.showModal();
+$('dlgClose').onclick = () => dlg.close();
+dlg.querySelectorAll('.srcTabs button').forEach(btn => btn.onclick = () => {
+  pendingSrc = btn.dataset.src;
+  dlg.querySelectorAll('.srcTabs button').forEach(b => b.setAttribute('aria-pressed', b === btn));
+  dlg.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== pendingSrc);
+});
+$('dlgConnect').onclick = () => {
+  state.source = pendingSrc;
+  state.relayUrl = $('relayUrl').value.trim();
+  state.apiKey = $('apiKey').value.trim();
+  state.tailnet = $('tailnet').value.trim() || '-';
+  if (pendingSrc === 'paste') {
+    try { applyLive(parseAny(JSON.parse($('pasteBox').value))); setConn('paste', true); logEvent('~ snapshot loaded from pasted JSON'); }
+    catch (e) { alert('could not parse JSON: ' + e.message); return; }
+  } else {
+    logEvent(`~ data source set to ${pendingSrc}`);
+    fetchFleet();
+  }
+  clearInterval(state.timer);
+  if (pendingSrc === 'relay' || pendingSrc === 'api') state.timer = setInterval(fetchFleet, 60000);
+  dlg.close();
+};
+
+/* machine dialog */
+const mdlg = $('machineDlg');
+document.querySelectorAll('[data-addmachine]').forEach(b => b.onclick = () => openMachine(-1, b.dataset.addmachine));
+document.addEventListener('click', e => {
+  const i = e.target?.dataset?.editmachine;
+  if (i !== undefined) openMachine(+i);
+});
+function openMachine(i, kind) {
+  state.editMachineIndex = i;
+  const m = i >= 0 ? state.registry[i] : { name:'', kind: kind || 'hw', role:'', specs:'', url:'', aliases: [] };
+  $('machineDlgTitle').textContent = i >= 0 ? 'machine --edit' : 'machine --add';
+  $('mName').value = m.name; $('mKind').value = m.kind; $('mRole').value = m.role;
+  $('mSpecs').value = m.specs; $('mUrl').value = m.url; $('mAliases').value = (m.aliases||[]).join(',');
+  $('mDelete').hidden = i < 0;
+  mdlg.showModal();
+}
+$('mCancel').onclick = () => mdlg.close();
+$('mDelete').onclick = () => {
+  const [gone] = state.registry.splice(state.editMachineIndex, 1);
+  logEvent(`- machine removed: ${gone?.name}`); renderFleet(); renderTiles(); mdlg.close();
+};
+$('mSave').onclick = () => {
+  const m = { name: $('mName').value.trim() || 'unnamed', kind: $('mKind').value,
+    role: $('mRole').value.trim(), specs: $('mSpecs').value.trim(), url: $('mUrl').value.trim(),
+    aliases: $('mAliases').value.split(',').map(s=>s.trim()).filter(Boolean) };
+  if (state.editMachineIndex >= 0) { state.registry[state.editMachineIndex] = m; logEvent(`~ machine updated: ${m.name}`); }
+  else { state.registry.push(m); logEvent(`+ machine registered: ${m.name}`); }
+  renderFleet(); renderTiles(); mdlg.close();
+};
+
+/* agent dialog */
+const adlg = $('agentDlg');
+$('addAgentBtn').onclick = () => openAgent(-1);
+$('rosterBody').onclick = e => { const i = e.target?.dataset?.edit; if (i !== undefined) openAgent(+i); };
+function openAgent(i) {
+  state.editIndex = i;
+  const a = i >= 0 ? state.agents[i] : { name:'', role:'', machine:'', status:'active', heartbeat:'' };
+  $('agentDlgTitle').textContent = i >= 0 ? 'agent --edit' : 'agent --add';
+  $('agName').value = a.name; $('agRole').value = a.role; $('agMachine').value = a.machine;
+  $('agStatus').value = a.status; $('agHeartbeat').value = a.heartbeat;
+  $('agDelete').hidden = i < 0;
+  adlg.showModal();
+}
+$('agCancel').onclick = () => adlg.close();
+$('agDelete').onclick = () => {
+  const [gone] = state.agents.splice(state.editIndex, 1);
+  logEvent(`- agent removed: ${gone?.name}`); renderRoster(); adlg.close();
+};
+$('agSave').onclick = () => {
+  const a = { name: $('agName').value.trim() || 'unnamed', role: $('agRole').value.trim(),
+    machine: $('agMachine').value.trim() || '—', status: $('agStatus').value, heartbeat: $('agHeartbeat').value.trim() };
+  if (state.editIndex >= 0) { state.agents[state.editIndex] = a; logEvent(`~ agent updated: ${a.name}`); }
+  else { state.agents.push(a); logEvent(`+ agent added: ${a.name}`); }
+  renderRoster(); adlg.close();
+};
+
+/* export / import */
+$('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify({ registry: state.registry, agents: state.agents,
+    relayUrl: state.relayUrl, vault: $('vaultName').value, exported: new Date().toISOString() }, null, 2)],
+    { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'studex-fleet-registry.json'; a.click();
+  URL.revokeObjectURL(a.href);
+  logEvent('~ registry exported');
+};
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (Array.isArray(data.registry)) state.registry = data.registry;
+    if (Array.isArray(data.agents)) state.agents = data.agents;
+    if (data.relayUrl) { state.relayUrl = data.relayUrl; $('relayUrl').value = data.relayUrl; }
+    if (data.vault) $('vaultName').value = data.vault;
+    renderFleet(); renderRoster(); logEvent('~ registry imported: ' + f.name);
+  } catch (err) { alert('import failed: ' + err.message); }
+  e.target.value = '';
+};
+
+/* boot */
+logEvent('~ studex fleet command v2 initialized');
+renderRoster(); renderFeed(); renderFleet(); renderTiles();
+</script>
+</body>
+</html>
