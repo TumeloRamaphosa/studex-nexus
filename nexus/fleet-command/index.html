@@ -398,7 +398,7 @@ const state = {
     { name: 'kiloclaw-rs1', kind: 'vm', role: 'OpenClaw agent host — client RS1', specs: 'kiloclaw.ai instance', url: 'https://i-62ef4592c6d9451bbab112d8253d4ae9.kiloclaw.ai/chat?session=main', aliases: [] },
     { name: 'gpu-burst', kind: 'vm', role: 'Cloud GPU burst workers — 70B-class jobs, join tailnet on demand', specs: 'ephemeral', url: '', aliases: [] },
     { name: 'spark-engine-vm', kind: 'vm', role: 'Host of spark-engine agent — tailnet join pending authkey', specs: '2-core Xeon · 7 GB RAM · Ubuntu 24.04 · Octopoda v3.3.4', url: '', aliases: ['spark-engine'] },
-    { name: 'orgo-84fc17f7', kind: 'vm', role: 'Orgo desktop shared 2026-09-01 — role pending assignment', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/84fc17f7', aliases: [] }
+    { name: 'orgo-agent-pool', kind: 'vm', role: 'Shared agent compute — pooled Orgo desktop any fleet agent can drive via Orgo API (Claude, OpenClaw, Naledi, Robusca, Base44 sales bots)', specs: 'Orgo desktop', url: 'https://www.orgo.ai/desktops/84fc17f7', aliases: ['orgo-84fc17f7', 'shared-compute'] }
   ],
   agents: [
     { name: 'claude-chairman', role: 'Fleet Command chairman — orchestration, wiki, dashboards (Cowork)', machine: 'anthropic cloud', status: 'active', heartbeat: 'session-based', email: 'via founder / relay bridge' },
