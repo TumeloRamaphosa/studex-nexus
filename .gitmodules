@@ -28,3 +28,6 @@
 [submodule "nexus/command-center-v0"]
 	path = nexus/command-center-v0
 	url = https://github.com/TumeloRamaphosa/command-center.git
+[submodule "platform/studx-os"]
+	path = platform/studx-os
+	url = https://github.com/TumeloRamaphosa/studx-os.git
