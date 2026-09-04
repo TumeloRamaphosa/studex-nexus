@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agents Nest — Your AI C-Suite, Running on African Cloud</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #e8c96a;
+    --gold-dim: #8a7234;
+    --obsidian: #050505;
+    --obsidian-surface: #0e0e0e;
+    --obsidian-card: #111111;
+    --border: #1e1e1e;
+    --text: #e8e8e8;
+    --muted: #666;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--obsidian);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* ── Canvas BG ── */
+  #constellation-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  /* ── Wrapper ── */
+  .content { position: relative; z-index: 1; }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px;
+    background: radial-gradient(ellipse at 50% 40%, #1a1200 0%, transparent 60%);
+  }
+
+  .hero-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+    opacity: 0.8;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 18vw, 200px);
+    line-height: 0.85;
+    letter-spacing: 8px;
+    color: var(--gold);
+    text-shadow: 0 0 80px rgba(201,168,76,0.3);
+    margin-bottom: 16px;
+  }
+
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 3vw, 32px);
+    font-style: italic;
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: 48px;
+    letter-spacing: 1px;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--obsidian);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    padding: 16px 48px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 4px 30px rgba(201,168,76,0.3);
+  }
+
+  .cta-btn:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(201,168,76,0.5);
+  }
+
+  .hero-note {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* ── Agents Strip ── */
+  .agents-strip {
+    padding: 80px 24px;
+    text-align: center;
+  }
+
+  .agents-strip h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .agents-strip p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 48px;
+  }
+
+  .agents-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .agent-chip {
+    background: var(--obsidian-card);
+    border: 1px solid var(--gold-dim);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .agent-chip:hover {
+    background: var(--gold);
+    color: var(--obsidian);
+    border-color: var(--gold);
+    transform: scale(1.05);
+  }
+
+  /* ── Pricing ── */
+  .pricing {
+    padding: 80px 24px;
+    background: var(--obsidian-surface);
+  }
+
+  .pricing h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    letter-spacing: 4px;
+    text-align: center;
+    color: var(--gold);
+    margin-bottom: 48px;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .pricing-card {
+    background: var(--obsidian-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s;
+    overflow: hidden;
+  }
+
+  .pricing-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+
+  .pricing-card:hover::after { transform: scaleX(1); }
+  .pricing-card:hover { border-color: var(--gold-dim); transform: translateY(-4px); }
+
+  .pricing-card.featured {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, #0e0e0e 0%, #1a1200 100%);
+  }
+
+  .pricing-card.featured::after { transform: scaleX(1); }
+
+  .card-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .card-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .card-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .card-price span {
+    font-size: 18px;
+    vertical-align: super;
+    color: var(--gold-dim);
+  }
+
+  .card-period {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+  }
+
+  .card-features {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .card-features li {
+    font-size: 12px;
+    color: var(--text);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0.8;
+  }
+
+  .card-features li:last-child { border-bottom: none; }
+
+  .card-cta {
+    display: block;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .pricing-card.featured .card-cta {
+    background: var(--gold);
+    color: var(--obsidian);
+    border-color: var(--gold);
+  }
+
+  .card-cta:hover {
+    background: var(--gold);
+    color: var(--obsidian);
+  }
+
+  .featured-badge {
+    position: absolute;
+    top: -1px; right: 16px;
+    background: var(--gold);
+    color: var(--obsidian);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 0 0 8px 8px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 48px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .footer-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .footer-brand {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .footer-built {
+    margin-top: 24px;
+    font-size: 10px;
+    color: var(--muted);
+    opacity: 0.5;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="constellation-canvas"></canvas>
+
+<div class="content">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-label">// The Future of African Business Intelligence</div>
+    <h1>AGENTS NEST</h1>
+    <p class="hero-sub">Your AI C-Suite, Running on African Cloud</p>
+    <a href="#" class="cta-btn" onclick="openSignup(); return false;">Start Free Trial</a>
+    <p class="hero-note">No credit card required · Deploy in 60 seconds</p>
+  </section>
+
+  <!-- Agents -->
+  <section class="agents-strip">
+    <h2>THE C-SUITE</h2>
+    <p>10 AI agents. Every department. Zero overhead.</p>
+    <div class="agents-list">
+      <span class="agent-chip">CEO Agent</span>
+      <span class="agent-chip">CFO Agent</span>
+      <span class="agent-chip">CTO Agent</span>
+      <span class="agent-chip">CMO Agent</span>
+      <span class="agent-chip">COO Agent</span>
+      <span class="agent-chip">CRO Agent</span>
+      <span class="agent-chip">CHRO Agent</span>
+      <span class="agent-chip">CSO Agent</span>
+      <span class="agent-chip">CDO Agent</span>
+      <span class="agent-chip">CAIO Agent</span>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing">
+    <h2>PRICING</h2>
+    <div class="pricing-grid">
+
+      <!-- Seedling -->
+      <div class="pricing-card">
+        <div class="card-label">Tier 01</div>
+        <div class="card-name">Seedling</div>
+        <div class="card-price"><span>R</span>199</div>
+        <div class="card-period">per month, per agent</div>
+        <ul class="card-features">
+          <li>1 AI Agent</li>
+          <li>1,000 messages/mo</li>
+          <li>Basic reporting</li>
+          <li>Email support</li>
+        </ul>
+        <a href="#" class="card-cta" onclick="openSignup(); return false;">Get Started</a>
+      </div>
+
+      <!-- Growth -->
+      <div class="pricing-card">
+        <div class="card-label">Tier 02</div>
+        <div class="card-name">Growth</div>
+        <div class="card-price"><span>R</span>599</div>
+        <div class="card-period">per month, per agent</div>
+        <ul class="card-features">
+          <li>3 AI Agents</li>
+          <li>10,000 messages/mo</li>
+          <li>Advanced analytics</li>
+          <li>Slack + Discord</li>
+        </ul>
+        <a href="#" class="card-cta" onclick="openSignup(); return false;">Get Started</a>
+      </div>
+
+      <!-- Empire -->
+      <div class="pricing-card featured">
+        <div class="featured-badge">POPULAR</div>
+        <div class="card-label">Tier 03</div>
+        <div class="card-name">Empire</div>
+        <div class="card-price"><span>R</span>1,499</div>
+        <div class="card-period">per month, per agent</div>
+        <ul class="card-features">
+          <li>10 AI Agents (Full C-Suite)</li>
+          <li>Unlimited messages</li>
+          <li>Custom agent training</li>
+          <li>Priority support</li>
+          <li>API access</li>
+        </ul>
+        <a href="#" class="card-cta" onclick="openSignup(); return false;">Get Started</a>
+      </div>
+
+      <!-- Agent Lord -->
+      <div class="pricing-card">
+        <div class="card-label">Tier 04</div>
+        <div class="card-name">Agent Lord</div>
+        <div class="card-price"><span>R</span>4,999</div>
+        <div class="card-period">per month, unlimited</div>
+        <ul class="card-features">
+          <li>Unlimited agents</li>
+          <li>Dedicated cloud infra</li>
+          <li>Custom model training</li>
+          <li>White-label options</li>
+          <li>Dedicated success manager</li>
+        </ul>
+        <a href="#" class="card-cta" onclick="openSignup(); return false;">Contact Sales</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-logo">AGENTS NEST</div>
+    <div class="footer-tagline">Powered by African Intelligence</div>
+    <div class="footer-brand">Studex Group · Johannesburg · Built for Africa</div>
+    <div class="footer-built">Agents Nest v1.0 — Studex Nexus Engineering</div>
+  </footer>
+
+</div>
+
+<script>
+// ── Constellation Canvas ─────────────────────────────────────
+const canvas = document.getElementById('constellation-canvas');
+const ctx = canvas.getContext('2d');
+let nodes = [];
+let time = 0;
+
+const AGENTS = [
+  'CEO', 'CFO', 'CTO', 'CMO', 'COO',
+  'CRO', 'CHRO', 'CSO', 'CDO', 'CAIO'
+];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  initNodes();
+}
+
+function initNodes() {
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const radius = Math.min(canvas.width, canvas.height) * 0.28;
+  nodes = AGENTS.map((name, i) => {
+    const angle = (i / AGENTS.length) * Math.PI * 2 - Math.PI / 2;
+    return {
+      name,
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: 4 + Math.random() * 3,
+      phase: Math.random() * Math.PI * 2,
+    };
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw connections
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxDist = 280;
+
+      if (dist < maxDist) {
+        const alpha = (1 - dist / maxDist) * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(nodes[j].x, nodes[j].y);
+        ctx.strokeStyle = `rgba(201,168,76,${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw nodes
+  nodes.forEach((n, i) => {
+    // Pulse
+    const pulse = 1 + 0.3 * Math.sin(time * 0.002 + n.phase);
+    const r = n.r * pulse;
+
+    // Glow
+    const gradient = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r * 6);
+    gradient.addColorStop(0, 'rgba(201,168,76,0.15)');
+    gradient.addColorStop(1, 'rgba(201,168,76,0)');
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r * 6, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Core
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#C9A84C';
+    ctx.fill();
+
+    // Label
+    ctx.font = '10px "Space Mono", monospace';
+    ctx.fillStyle = 'rgba(201,168,76,0.7)';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.name, n.x, n.y - r - 8);
+  });
+
+  // Move nodes slowly
+  nodes.forEach(n => {
+    n.x += n.vx;
+    n.y += n.vy;
+
+    // Soft boundary bounce
+    const margin = 100;
+    if (n.x < margin || n.x > canvas.width - margin) n.vx *= -0.8;
+    if (n.y < margin || n.y > canvas.height - margin) n.vy *= -0.8;
+  });
+
+  time++;
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', resize);
+resize();
+draw();
+
+// ── Signup ───────────────────────────────────────────────────
+function openSignup() {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.85);z-index:1000;
+    display:flex;align-items:center;justify-content:center;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background:#111;border:1px solid #C9A84C;border-radius:12px;
+      padding:48px;max-width:480px;width:90%;text-align:center;
+    ">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:#C9A84C;letter-spacing:3px;margin-bottom:16px;">
+        AGENTS NEST
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:#666;margin-bottom:32px;">
+        Deploy your AI C-Suite in 60 seconds.
+      </div>
+      <input type="email" placeholder="your@email.com" style="
+        width:100%;padding:14px 18px;border:1px solid #333;
+        background:#0e0e0e;color:#e8e8e8;border-radius:6px;
+        font-family:'Space Mono',monospace;font-size:14px;
+        margin-bottom:16px;box-sizing:border-box;
+      ">
+      <button onclick="this.closest('[style]').remove()" style="
+        width:100%;padding:14px;background:#C9A84C;border:none;border-radius:6px;
+        color:#050505;font-family:'Bebas Neue',sans-serif;font-size:18px;
+        letter-spacing:2px;cursor:pointer;
+      ">START FREE TRIAL</button>
+      <div style="margin-top:16px;font-size:11px;color:#444;">
+        No credit card required.
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+</script>
+
+</body>
+</html>
