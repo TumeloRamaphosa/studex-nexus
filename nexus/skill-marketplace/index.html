@@ -371,14 +371,30 @@ function dispatchAgent() { if (currentAgent) dispatchTo(currentAgent.slug); }
 async function dispatchTo(slug) {
   const task = prompt(`Task for ${slug}:`);
   if (!task) return;
+  // Hermes real API: POST /api/session/new -> POST /api/chat/start -> GET /api/chat/stream
+  // Load the agent's .md file as the system prompt so Hermes "becomes" the agent for this session.
   try {
-    const r = await fetch(`${HERMES_URL}/dispatch`, {
+    // Step 1: create session preloaded with the agent's system prompt
+    const agentMdUrl = `https://raw.githubusercontent.com/msitarzewski/agency-agents/main/${ALL.find(a=>a.slug===slug).division}/${slug}.md`;
+    const sess = await fetch(`${HERMES_URL}/api/session/new`, {
       method: 'POST', headers: {'content-type':'application/json'},
-      body: JSON.stringify({ agent: slug, task })
+      body: JSON.stringify({
+        title: `${slug} — ${task.slice(0,40)}`,
+        system_prompt_url: agentMdUrl  // Hermes will fetch + inject; falls back to inline system_prompt
+      })
     });
-    alert(r.ok ? `Dispatched to ${slug}` : `Failed: ${r.status}`);
+    if (!sess.ok) throw new Error(`session/new ${sess.status}`);
+    const { session_id } = await sess.json();
+    // Step 2: send the task
+    const chat = await fetch(`${HERMES_URL}/api/chat/start`, {
+      method: 'POST', headers: {'content-type':'application/json'},
+      body: JSON.stringify({ session_id, message: task })
+    });
+    const { stream_id } = await chat.json();
+    alert(`Session ${session_id} started with ${slug}.\nStream: ${HERMES_URL}/api/chat/stream?stream_id=${stream_id}\nOpen Hermes UI to watch: ${HERMES_URL}`);
+    window.open(HERMES_URL, '_blank');
   } catch(e) {
-    alert(`Hermes unreachable at ${HERMES_URL} — start it: docker start hermes-webui, or update HERMES_URL in this HTML to the public tunnel URL.`);
+    alert(`Hermes error: ${e.message}\nCheck Hermes is up: curl ${HERMES_URL}/health\nOr open UI directly: ${HERMES_URL}`);
   }
 }
 

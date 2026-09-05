@@ -129,32 +129,58 @@ Good candidates to add next:
 - Agents Nest landing page (marketing conversion — "Try a live agent")
 - Customer portal / admin dashboards
 
-## Backend contract Hermes must honor
+## Hermes's actual API (verified against running instance)
 
-For the buttons above to actually work, Hermes must expose:
+Hermes is a self-hosted chat runtime (multi-provider LLM interface — Claude/OpenAI/DeepSeek/Ollama/etc.). It doesn't have a `/dispatch` endpoint — you dispatch by creating a session with the agent's system prompt, then sending a chat message.
 
+**GET endpoints:**
 ```
-POST /dispatch
-Content-Type: application/json
-
-{
-  "agent": "<slug>",
-  "task": "<free-text task description>"
-}
-
-Response:
-{
-  "ok": true,
-  "job_id": "<uuid>",
-  "eta_seconds": 30
-}
+GET  /                              → the Hermes web UI
+GET  /health                        → JSON: { status, sessions, active_streams, uptime_seconds }
+GET  /api/session                   → session details
+GET  /api/sessions                  → list all sessions
+GET  /api/list                      → list of profiles/models
+GET  /api/chat/stream?stream_id=X   → SSE stream (long-lived — read tokens as they arrive)
+GET  /api/file                      → file access
+GET  /api/approval/pending          → tool-approval queue
+GET  /api/session/worktree/status
 ```
 
-Optional but recommended:
+**POST endpoints:**
 ```
-GET  /agents                → list of registered agents
-GET  /jobs/<id>             → job status
-GET  /healthz               → { ok: true }
+POST /api/upload
+POST /api/session/new               → { title, system_prompt } → { session_id }
+POST /api/session/update
+POST /api/session/delete
+POST /api/chat/start                → { session_id, message } → { stream_id }
+POST /api/chat                      → sync version (blocks until done)
+POST /api/approval/respond
+POST /api/session/worktree/remove
+```
+
+**The two-step dispatch pattern** (what the snippets above use — updated):
+
+```js
+// 1. Create a session, injecting the agent's Agency .md file as system prompt
+const sess = await fetch(`${HERMES_URL}/api/session/new`, {
+  method: 'POST', headers: {'content-type':'application/json'},
+  body: JSON.stringify({
+    title: 'Robusca — sales pipeline audit',
+    system_prompt: '<contents of agency-agents/robusca.md>'  // inline
+  })
+});
+const { session_id } = await sess.json();
+
+// 2. Send the task, get back stream_id
+const chat = await fetch(`${HERMES_URL}/api/chat/start`, {
+  method: 'POST', headers: {'content-type':'application/json'},
+  body: JSON.stringify({ session_id, message: 'Audit last week Q4 pipeline movements.' })
+});
+const { stream_id } = await chat.json();
+
+// 3. Read the SSE stream
+const es = new EventSource(`${HERMES_URL}/api/chat/stream?stream_id=${stream_id}`);
+es.onmessage = e => console.log(JSON.parse(e.data));
 ```
 
 ## Making it work publicly (Cloudflare Tunnel)
