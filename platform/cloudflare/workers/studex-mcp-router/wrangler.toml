@@ -1,0 +1,24 @@
+name = "studex-mcp-router"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+# Bindings — uncomment and configure once account ID + resources are provisioned.
+
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "..."
+
+# [[r2_buckets]]
+# binding = "AGENT_LOGS"
+# bucket_name = "studex-agent-logs"
+
+# [[d1_databases]]
+# binding = "STATE"
+# database_name = "studex-nexus"
+# database_id = "..."
+
+# [ai]
+# binding = "AI"
+
+# [vars]
+# ENVIRONMENT = "production"

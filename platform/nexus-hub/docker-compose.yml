@@ -1,0 +1,89 @@
+# Studex Nexus Hub — docker-compose for studex-nexus-hub GCE VM (34.35.82.49)
+#
+# Deploy:
+#   1. SSH: gcloud compute ssh studex-nexus-hub --project=gen-lang-client-0728429584 --zone=africa-south1-a
+#   2. Clone: git clone https://github.com/TumeloRamaphosa/studex-nexus.git /opt/studex-nexus
+#   3. cd /opt/studex-nexus/platform/nexus-hub
+#   4. cp .env.example .env  (fill in secrets)
+#   5. sudo docker compose up -d
+#
+# Then:
+#   - n8n:            http://34.35.82.49:5678
+#   - watchtower:     auto-updates containers on push
+#   - traefik:        reverse proxy w/ auto TLS via Cloudflare (needs DNS)
+
+services:
+  # ─── Workflow engine ─────────────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=${N8N_HOST:-n8n.studex.co.za}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST:-n8n.studex.co.za}/
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_METRICS=true
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-db
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - GENERIC_TIMEZONE=Africa/Johannesburg
+      - N8N_LOG_LEVEL=info
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /opt/n8n/files:/files
+    depends_on:
+      - n8n-db
+
+  n8n-db:
+    image: postgres:16-alpine
+    container_name: n8n-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=n8n
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - n8n_db_data:/var/lib/postgresql/data
+
+  # ─── Container auto-updates ──────────────────────────────────────
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=3600
+      - WATCHTOWER_CLEANUP=true
+
+  # ─── Cloudflare Tunnel (public URLs without opening ports) ──────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - n8n
+
+  # ─── Uptime monitoring ──────────────────────────────────────────
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_data:/app/data
+
+volumes:
+  n8n_data:
+  n8n_db_data:
+  uptime_data:
