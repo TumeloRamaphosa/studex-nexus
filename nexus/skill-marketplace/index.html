@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studex Skill Marketplace</title>
+<style>
+  :root { color-scheme: dark; }
+  .app {
+    color-scheme: dark;
+    --surface-1: #1e1e1c;
+    --page: #151514;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8b8983;
+    --grid: #2e2e2b;
+    --border: rgba(255,255,255,0.12);
+    --acc-1: #eb6834;
+    --acc-2: #ffd21e;
+    --acc-3: #ef8fb5;
+    --acc-1-ink: #161615;
+    --st-good: #0ca30c;
+    --st-warn: #fab219;
+    --chip-wash: rgba(255,255,255,0.06);
+    --glow: rgba(235,104,52,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  .app {
+    min-height: 100vh; background: var(--page); color: var(--text-primary);
+    font-family: ui-monospace,"Cascadia Code","JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    font-size: 13.5px; line-height: 1.5;
+  }
+  header.topbar {
+    display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+    border-bottom: 1px solid var(--grid); background: var(--surface-1);
+    position: sticky; top: 0; z-index: 30; flex-wrap: wrap;
+  }
+  .prompt { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .prompt .u { color: var(--acc-1); }
+  .prompt .p { color: var(--acc-3); }
+  .prompt .cmd { color: var(--text-primary); }
+  .cursor { display: inline-block; width: 8px; height: 15px; background: var(--text-primary); vertical-align: text-bottom; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .spacer { flex: 1; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 4px 11px; border-radius: 4px; border: 1px solid var(--border);
+    font-size: 12px; color: var(--text-secondary); background: var(--chip-wash);
+    white-space: nowrap; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--acc-1); color: var(--text-primary); }
+  .chip.active { background: var(--acc-1); color: var(--acc-1-ink); border-color: transparent; font-weight: 700; }
+  .chip .count { font-size: 10px; opacity: 0.7; }
+  main { max-width: 1400px; margin: 0 auto; padding: 18px 20px 60px; }
+
+  /* Search bar */
+  .search-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .search-row input[type=search] {
+    flex: 1; min-width: 250px; padding: 10px 14px;
+    background: var(--surface-1); border: 1px solid var(--border);
+    color: var(--text-primary); font: inherit; font-size: 14px;
+    border-radius: 4px;
+  }
+  .search-row input[type=search]::placeholder { color: var(--text-muted); }
+  .search-row input[type=search]:focus { outline: none; border-color: var(--acc-1); background: var(--page); }
+  .stats { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+  .stats .n { color: var(--acc-2); font-weight: 700; }
+
+  /* Division filter row */
+  .divisions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px; background: var(--surface-1); border-radius: 6px; border: 1px solid var(--border); }
+  .divisions .label { color: var(--text-muted); font-size: 11px; padding-right: 8px; align-self: center; }
+
+  /* Bundle bar */
+  .bundles { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .bundle {
+    background: linear-gradient(135deg, var(--surface-1), var(--page));
+    border: 1px solid var(--acc-1); border-radius: 8px; padding: 14px;
+    display: flex; flex-direction: column; gap: 8px;
+    position: relative; overflow: hidden;
+  }
+  .bundle::before {
+    content: ''; position: absolute; top: -20px; right: -20px;
+    width: 100px; height: 100px; background: radial-gradient(circle, var(--acc-1) 0%, transparent 70%);
+    opacity: 0.15;
+  }
+  .bundle .btag {
+    font-size: 10px; color: var(--acc-2); text-transform: uppercase; letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+  .bundle h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .bundle .b-desc { font-size: 12px; color: var(--text-secondary); }
+  .bundle .b-agents { font-size: 11px; color: var(--text-muted); }
+  .bundle .b-price { font-size: 18px; font-weight: 700; color: var(--acc-2); margin-top: auto; }
+  .bundle .b-price small { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+  .bundle button {
+    background: var(--acc-1); color: var(--acc-1-ink); border: none;
+    padding: 8px 14px; border-radius: 4px; cursor: pointer; font: inherit;
+    font-weight: 700; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .bundle button:hover { background: var(--acc-2); }
+
+  /* Agent grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 10px; }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-left: 3px solid var(--grid);
+    border-radius: 6px; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-left-color: var(--acc-1); }
+  .card.premium { border-left-color: var(--acc-2); }
+  .card .head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .card .name { font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
+  .card .name::before { content: '> '; color: var(--acc-1); }
+  .card .div-tag {
+    font-size: 10px; color: var(--acc-3); text-transform: uppercase;
+    letter-spacing: 0.05em; margin-left: auto;
+  }
+  .card .desc { font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; }
+  .card .foot { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+  .card .price { font-size: 12px; color: var(--acc-2); font-weight: 700; }
+  .card .price.free { color: var(--st-good); }
+  .card button {
+    margin-left: auto; padding: 3px 10px; font-size: 11px;
+    background: transparent; border: 1px solid var(--border); color: var(--text-primary);
+    border-radius: 3px; cursor: pointer; font: inherit; font-weight: 700;
+  }
+  .card button:hover { border-color: var(--acc-1); background: var(--glow); }
+
+  .empty { text-align: center; padding: 40px; color: var(--text-muted); }
+
+  /* Hermes floating button */
+  .hermes-btn {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--acc-1); color: var(--acc-1-ink);
+    padding: 12px 18px; border-radius: 30px; border: none;
+    font: inherit; font-weight: 700; font-size: 13px; letter-spacing: 0.05em;
+    cursor: pointer; box-shadow: 0 6px 20px rgba(235,104,52,0.4);
+    display: flex; align-items: center; gap: 8px; z-index: 100;
+    text-transform: uppercase;
+  }
+  .hermes-btn:hover { background: var(--acc-2); transform: translateY(-2px); }
+  .hermes-btn .dot { width: 8px; height: 8px; background: #0ca30c; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+
+  /* Drawer for agent details / deploy */
+  dialog {
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--acc-1); border-radius: 8px; padding: 20px;
+    max-width: 600px; width: 90%; font: inherit;
+  }
+  dialog::backdrop { background: rgba(0,0,0,0.7); }
+  dialog h3 { margin-bottom: 8px; font-size: 16px; color: var(--acc-1); }
+  dialog .agent-md { font-size: 12px; color: var(--text-secondary); background: var(--page); padding: 10px; border-radius: 4px; margin: 12px 0; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+  dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+  dialog button { padding: 6px 12px; background: var(--chip-wash); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font: inherit; }
+  dialog button.primary { background: var(--acc-1); color: var(--acc-1-ink); border-color: transparent; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="prompt"><span class="u">studex@marketplace</span><span class="p">:~/skills</span><span class="cmd">$ ls --all</span> <span class="cursor"></span></div>
+    <div class="spacer"></div>
+    <a class="chip" href="../fleet-command/">◀ fleet-command</a>
+    <a class="chip" href="https://github.com/TumeloRamaphosa/studex-nexus" target="_blank">github ↗</a>
+  </header>
+
+  <main>
+    <!-- Search + stats -->
+    <div class="search-row">
+      <input type="search" id="q" placeholder="search agents by name, division, or capability…" autofocus>
+      <div class="stats"><span class="n" id="statCount">0</span> agents · <span class="n" id="statDivs">0</span> divisions</div>
+    </div>
+
+    <!-- Division filter chips -->
+    <div class="divisions" id="divChips">
+      <span class="label">// filter by division:</span>
+    </div>
+
+    <!-- Premium bundles -->
+    <section>
+      <h2 style="font-size:13px;color:var(--acc-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em;">// premium bundles</h2>
+      <div class="bundles" id="bundles"></div>
+    </section>
+
+    <!-- Full agent grid -->
+    <section>
+      <h2 style="font-size:13px;color:var(--acc-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em;">// all agents</h2>
+      <div class="grid" id="grid"><div class="empty">loading…</div></div>
+    </section>
+  </main>
+
+  <!-- Hermes floating action button -->
+  <button class="hermes-btn" onclick="openHermes()" title="Open Hermes agent runtime">
+    <span class="dot"></span> Hermes
+  </button>
+
+  <!-- Agent detail dialog -->
+  <dialog id="dlg">
+    <h3 id="dlgTitle"></h3>
+    <div id="dlgDiv" style="font-size:10px;color:var(--acc-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;"></div>
+    <div id="dlgDesc" style="font-size:13px;color:var(--text-secondary);"></div>
+    <div class="agent-md" id="dlgSlug"></div>
+    <div class="actions">
+      <button onclick="dlg.close()">close</button>
+      <button class="primary" onclick="dispatchAgent()">Deploy → Hermes</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+// ═══ PREMIUM BUNDLES ═══
+// Bundle definitions — mix agents from agency-agents into paid packs.
+const BUNDLES = [
+  {
+    id: 'security-team',
+    tag: 'Enterprise',
+    name: 'Security Team Pack',
+    desc: '7 specialists: blockchain audit, compliance, identity trust, incident response, code review, governance, ZK.',
+    price: 'R2,499/mo',
+    priceSub: '10 agent-hrs/mo included',
+    agents: ['blockchain-security-auditor','compliance-auditor','agentic-identity-trust','engineering-incident-response-commander','engineering-code-reviewer','automation-governance-architect','zk-steward']
+  },
+  {
+    id: 'growth-team',
+    tag: 'SMB',
+    name: 'Growth & Marketing Pack',
+    desc: '8 specialists: content, SEO, social, paid media, brand voice, growth hacking, influencer relations.',
+    price: 'R1,499/mo',
+    priceSub: '25 agent-hrs/mo included',
+    agents: ['marketing-content-creator','marketing-seo-strategist','marketing-social-media-manager','paid-media-programmatic-buyer','paid-media-creative-strategist','design-brand-guardian','marketing-growth-hacker','marketing-influencer-relations']
+  },
+  {
+    id: 'sales-team',
+    tag: 'SMB',
+    name: 'Sales & Deal Desk Pack',
+    desc: '6 specialists: outbound, discovery, deal strategy, proposal writing, pipeline analysis, sales engineering.',
+    price: 'R1,499/mo',
+    priceSub: '20 agent-hrs/mo included',
+    agents: ['sales-outbound-strategist','sales-discovery-coach','sales-deal-strategist','sales-proposal-strategist','sales-pipeline-analyst','sales-engineer']
+  },
+  {
+    id: 'engineering-team',
+    tag: 'Startup',
+    name: 'Engineering Team Pack',
+    desc: '9 specialists: backend, frontend, mobile, DevOps, database, code review, incident response, prototyping.',
+    price: 'R2,999/mo',
+    priceSub: '40 agent-hrs/mo included',
+    agents: ['engineering-backend-architect','engineering-frontend-developer','engineering-mobile-app-builder','engineering-devops-automator','engineering-database-optimizer','engineering-code-reviewer','engineering-incident-response-commander','engineering-rapid-prototyper','engineering-git-workflow-master']
+  },
+  {
+    id: 'design-team',
+    tag: 'SMB',
+    name: 'Design Studio Pack',
+    desc: '5 specialists: UX architecture, UI design, brand guardian, visual storytelling, UX research.',
+    price: 'R999/mo',
+    priceSub: '15 agent-hrs/mo included',
+    agents: ['design-ux-architect','design-ui-designer','design-brand-guardian','design-visual-storyteller','design-ux-researcher']
+  },
+  {
+    id: 'agent-lord',
+    tag: 'Enterprise',
+    name: 'Agent Lord — Full Access',
+    desc: 'Every agent, no metering. Priority queue. Custom personas. Dedicated deployment in africa-south1.',
+    price: 'R9,999/mo',
+    priceSub: 'unlimited agent-hrs',
+    agents: ['*']
+  }
+];
+
+const HERMES_URL = 'http://localhost:8787';  // change to public Cloudflare Tunnel URL when live
+
+let ALL = [];
+let filterDiv = null;
+
+fetch('agents-catalog.json').then(r => r.json()).then(data => {
+  ALL = data;
+  document.getElementById('statCount').textContent = ALL.length;
+  const divisions = [...new Set(ALL.map(a => a.division))].sort();
+  document.getElementById('statDivs').textContent = divisions.length;
+  renderDivChips(divisions);
+  renderBundles();
+  render();
+});
+
+function renderDivChips(divisions) {
+  const el = document.getElementById('divChips');
+  const counts = {};
+  ALL.forEach(a => counts[a.division] = (counts[a.division]||0) + 1);
+  const all = `<span class="chip ${filterDiv===null?'active':''}" onclick="setDiv(null)">all <span class="count">${ALL.length}</span></span>`;
+  const chips = divisions.map(d =>
+    `<span class="chip ${filterDiv===d?'active':''}" onclick="setDiv('${d}')">${d.replace(/-/g,' ')} <span class="count">${counts[d]}</span></span>`
+  ).join('');
+  el.innerHTML = '<span class="label">// filter by division:</span>' + all + chips;
+}
+
+function setDiv(d) {
+  filterDiv = d;
+  const divisions = [...new Set(ALL.map(a => a.division))].sort();
+  renderDivChips(divisions);
+  render();
+}
+
+function renderBundles() {
+  document.getElementById('bundles').innerHTML = BUNDLES.map(b => `
+    <div class="bundle">
+      <div class="btag">${b.tag}</div>
+      <h3>${b.name}</h3>
+      <div class="b-desc">${b.desc}</div>
+      <div class="b-agents">${b.agents[0]==='*' ? 'all ' + ALL.length + ' agents' : b.agents.length + ' agents included'}</div>
+      <div class="b-price">${b.price}<br><small>${b.priceSub}</small></div>
+      <button onclick="subscribe('${b.id}')">Subscribe</button>
+    </div>
+  `).join('');
+}
+
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function render() {
+  const q = (document.getElementById('q').value || '').toLowerCase().trim();
+  let list = ALL;
+  if (filterDiv) list = list.filter(a => a.division === filterDiv);
+  if (q) list = list.filter(a =>
+    a.slug.toLowerCase().includes(q) ||
+    a.name.toLowerCase().includes(q) ||
+    a.desc.toLowerCase().includes(q) ||
+    a.division.toLowerCase().includes(q)
+  );
+  if (!list.length) {
+    document.getElementById('grid').innerHTML = '<div class="empty">no agents match</div>';
+    return;
+  }
+  // Detect if agent is in any premium bundle
+  const premiumSet = new Set(BUNDLES.flatMap(b => b.agents[0]==='*' ? [] : b.agents));
+  document.getElementById('grid').innerHTML = list.map(a => `
+    <div class="card ${premiumSet.has(a.slug) ? 'premium' : ''}" onclick="showAgent('${a.slug}')">
+      <div class="head">
+        <div class="name">${esc(a.name)}</div>
+        <div class="div-tag">${esc(a.division)}</div>
+      </div>
+      <div class="desc">${esc(a.desc)}</div>
+      <div class="foot">
+        ${premiumSet.has(a.slug)
+          ? '<span class="price">bundled ★</span>'
+          : '<span class="price free">free tier</span>'}
+        <button onclick="event.stopPropagation(); dispatchTo('${a.slug}')">Run</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('q').addEventListener('input', render);
+
+const dlg = document.getElementById('dlg');
+let currentAgent = null;
+function showAgent(slug) {
+  const a = ALL.find(x => x.slug === slug);
+  if (!a) return;
+  currentAgent = a;
+  document.getElementById('dlgTitle').textContent = a.name;
+  document.getElementById('dlgDiv').textContent = a.division;
+  document.getElementById('dlgDesc').textContent = a.desc;
+  document.getElementById('dlgSlug').textContent = `agent slug: ${a.slug}\nfile: agency-agents/${a.division}/${a.slug}.md\nHermes dispatch:\n  POST ${HERMES_URL}/dispatch\n  { "agent": "${a.slug}", "task": "..." }`;
+  dlg.showModal();
+}
+function dispatchAgent() { if (currentAgent) dispatchTo(currentAgent.slug); }
+
+async function dispatchTo(slug) {
+  const task = prompt(`Task for ${slug}:`);
+  if (!task) return;
+  try {
+    const r = await fetch(`${HERMES_URL}/dispatch`, {
+      method: 'POST', headers: {'content-type':'application/json'},
+      body: JSON.stringify({ agent: slug, task })
+    });
+    alert(r.ok ? `Dispatched to ${slug}` : `Failed: ${r.status}`);
+  } catch(e) {
+    alert(`Hermes unreachable at ${HERMES_URL} — start it: docker start hermes-webui, or update HERMES_URL in this HTML to the public tunnel URL.`);
+  }
+}
+
+function openHermes() { window.open(HERMES_URL, '_blank'); }
+function subscribe(bundleId) {
+  const b = BUNDLES.find(x => x.id === bundleId);
+  alert(`Subscribe to ${b.name} — wire this to Paystack:\n\n1. Create Paystack subscription plan for ${b.price}\n2. On success, provision customer workspace with agents:\n   ${b.agents.join('\n   ')}\n3. Issue API key + Cloudflare Worker route for their tenant.`);
+}
+</script>
+</body>
+</html>
