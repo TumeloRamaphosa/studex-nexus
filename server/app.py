@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import secrets
 import subprocess
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -12,13 +13,24 @@ from urllib.parse import urlparse
 
 from server.config import ROOT, get, load_env
 from server.connectors import blotato, feedhive, freepik, ollama
-from server import brain, store
+from server import brain, credentials, store
 
 PUBLIC_DIR = ROOT / "public"
+MAX_REQUEST_BYTES = 1_048_576
+
+
+class RequestError(ValueError):
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 def _port() -> int:
     return int(get("PORT", "5050"))
+
+
+def _host() -> str:
+    return get("HOST", "127.0.0.1")
 
 
 def _json_response(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> None:
@@ -32,10 +44,23 @@ def _json_response(handler: BaseHTTPRequestHandler, status: int, payload: dict) 
 
 
 def _read_json(handler: BaseHTTPRequestHandler) -> dict:
-    length = int(handler.headers.get("Content-Length", 0))
+    try:
+        length = int(handler.headers.get("Content-Length", 0))
+    except (TypeError, ValueError) as exc:
+        raise RequestError(400, "Invalid Content-Length") from exc
+    if length < 0:
+        raise RequestError(400, "Invalid Content-Length")
+    if length > MAX_REQUEST_BYTES:
+        raise RequestError(413, "Request body too large")
     if length == 0:
         return {}
-    return json.loads(handler.rfile.read(length).decode())
+    try:
+        payload = json.loads(handler.rfile.read(length).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RequestError(400, "Invalid JSON body") from exc
+    if not isinstance(payload, dict):
+        raise RequestError(400, "JSON body must be an object")
+    return payload
 
 
 def _higgsfield_status() -> dict:
@@ -80,6 +105,7 @@ class NexusHandler(BaseHTTPRequestHandler):
                 {
                     "systemStatus": "ACTIVE",
                     "lastRun": datetime.now(timezone.utc).strftime("Today %H:%M"),
+                    "credentials": credentials.status(),
                     "connectors": {
                         "ollama": ollama.status(),
                         "blotato": blotato.status(),
@@ -145,7 +171,10 @@ class NexusHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         path = parsed.path
-        body = _read_json(self)
+        try:
+            body = _read_json(self)
+        except RequestError as exc:
+            return _json_response(self, exc.status, {"error": str(exc)})
 
         if path == "/api/generate/recommendations":
             try:
@@ -210,8 +239,11 @@ class NexusHandler(BaseHTTPRequestHandler):
             )
 
         if path == "/api/portal/login":
+            configured_password = get("PORTAL_PASSWORD")
+            if not configured_password:
+                return _json_response(self, 503, {"error": "Portal login is not configured"})
             password = body.get("password", "")
-            if password == get("PORTAL_PASSWORD", "nexus2026"):
+            if secrets.compare_digest(str(password), configured_password):
                 return _json_response(self, 200, {"ok": True})
             return _json_response(self, 401, {"error": "Invalid access code"})
 
@@ -239,9 +271,10 @@ class NexusHandler(BaseHTTPRequestHandler):
 def main() -> None:
     load_env()
     PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
+    host = _host()
     port = _port()
-    server = ThreadingHTTPServer(("0.0.0.0", port), NexusHandler)
-    print(f"STUDEX NEXUS running at http://localhost:{port}")
+    server = ThreadingHTTPServer((host, port), NexusHandler)
+    print(f"STUDEX NEXUS running at http://{host}:{port}")
     server.serve_forever()
 
 

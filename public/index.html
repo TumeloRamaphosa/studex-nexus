@@ -852,16 +852,16 @@
         <div class="gold-accent"></div>
         <div class="hero-stats">
             <div class="hero-stat">
-                <span class="hero-stat-value" data-count="847">0</span>
-                <span class="hero-stat-label">Posts Generated</span>
+                <span class="hero-stat-value" id="statPosts">—</span>
+                <span class="hero-stat-label">Posts generated (live)</span>
             </div>
             <div class="hero-stat">
-                <span class="hero-stat-value" data-count="94">0</span>
-                <span class="hero-stat-label">Influencers</span>
+                <span class="hero-stat-value" id="statInfluencers">—</span>
+                <span class="hero-stat-label">Influencers (live)</span>
             </div>
             <div class="hero-stat">
-                <span class="hero-stat-value" data-count="2.4">0</span>
-                <span class="hero-stat-label">M Engagement</span>
+                <span class="hero-stat-value" id="statEngagement">—</span>
+                <span class="hero-stat-label">Engagement (live)</span>
             </div>
         </div>
     </div>
@@ -903,7 +903,7 @@
             </div>
             <div class="command-item">
                 <div class="command-label">Pending Review</div>
-                <div class="command-value status-warning" id="pendingReview">5</div>
+                <div class="command-value" id="pendingReview">—</div>
             </div>
         </div>
     </section>
@@ -914,6 +914,10 @@
             <h2 class="section-title">System Status</h2>
         </div>
         <div class="workflow-grid" id="connectorGrid"></div>
+        <div class="section-header" style="margin-top:48px;">
+            <h2 class="section-title">Credentials</h2>
+        </div>
+        <div class="workflow-grid" id="credentialGrid"></div>
     </section>
 
     <!-- ASK BRAIN -->
@@ -962,85 +966,27 @@
             <div class="content-column">
                 <div class="column-header">
                     <span class="column-title">Scheduled</span>
-                    <span class="column-count">7 Posts</span>
+                    <span class="column-count" id="scheduledCount">—</span>
                 </div>
-                <div id="scheduledPosts">
-                    <div class="post-item">
-                        <div class="post-platform">Facebook • Instagram</div>
-                        <div class="post-caption">New season, new edges. Our copper collection drops Monday. Tag someone who needs the upgrade.</div>
-                        <div class="post-time">Tomorrow, 09:00 AM</div>
-                    </div>
-                    <div class="post-item">
-                        <div class="post-platform">Instagram Reels</div>
-                        <div class="post-caption">Behind the scenes at our Johannesburg workshop. Real craftsmen, real quality.</div>
-                        <div class="post-time">Tomorrow, 12:00 PM</div>
-                    </div>
-                    <div class="post-item">
-                        <div class="post-platform">Facebook</div>
-                        <div class="post-caption">Customer spotlight: @Thabo_M plays the long game. Two years, zero tangles.</div>
-                        <div class="post-time">Mar 18, 10:30 AM</div>
-                    </div>
-                    <div class="post-item">
-                        <div class="post-platform">Instagram</div>
-                        <div class="post-caption">The difference is in the detail. Premium synthetic fiber that moves like the real thing.</div>
-                        <div class="post-time">Mar 19, 02:00 PM</div>
-                    </div>
-                </div>
+                <div id="scheduledPosts"></div>
             </div>
 
             <!-- Approval Queue -->
             <div class="content-column">
                 <div class="column-header">
                     <span class="column-title">Approval Queue</span>
-                    <span class="column-count">5 Pending</span>
+                    <span class="column-count" id="pendingCount">—</span>
                 </div>
-                <div id="pendingPosts">
-                    <div class="post-item pending">
-                        <div class="post-platform">Instagram</div>
-                        <div class="post-caption">Weekend vibes only. Lock in your look for Saturday. #StudexSA #HairGoals</div>
-                        <div class="post-time">Awaiting approval</div>
-                    </div>
-                    <div class="post-item pending">
-                        <div class="post-platform">Facebook</div>
-                        <div class="post-caption">Easter special incoming. First 50 customers get free shipping. Studex Meat Szn.</div>
-                        <div class="post-time">Awaiting approval</div>
-                    </div>
-                    <div class="post-item pending">
-                        <div class="post-platform">Instagram Stories</div>
-                        <div class="post-caption">Quick tip Tuesday: Detangle from ends up. Your hair will thank you later.</div>
-                        <div class="post-time">Awaiting approval</div>
-                    </div>
-                    <div class="post-item pending">
-                        <div class="post-platform">Instagram</div>
-                        <div class="post-caption">The Studex difference explained in 60 seconds. Quality you can see and feel.</div>
-                        <div class="post-time">Awaiting approval</div>
-                    </div>
-                </div>
+                <div id="pendingPosts"></div>
             </div>
 
             <!-- Posted Today -->
             <div class="content-column">
                 <div class="column-header">
                     <span class="column-title">Posted Today</span>
-                    <span class="column-count">3 Complete</span>
+                    <span class="column-count" id="postedCount">—</span>
                 </div>
-                <div id="postedPosts">
-                    <div class="post-item approved">
-                        <div class="post-platform">Instagram • Facebook</div>
-                        <div class="post-caption">Monday motivation hits different when your edges are laid. Start your week right.</div>
-                        <div class="post-time">Posted 08:15 AM • 12.4K reach</div>
-                    </div>
-                    <div class="post-item approved">
-                        <div class="post-platform">Instagram</div>
-                        <div class="post-caption">New DM response time just dropped: under 2 hours. We're here for you. 💪</div>
-                        <div class="post-time">Posted 10:30 AM • 8.7K reach</div>
-                    </div>
-                    <div class="post-item approved">
-                        <div class="post-platform">Facebook</div>
-                        <div class="post-caption">Bulk orders now available. Got a squad? Studex Meat has you covered. DM for pricing.</div>
-                        <div class="post-time">Posted 02:45 PM • 6.2K reach</div>
-                    </div>
-                </div>
+                <div id="postedPosts"></div>
             </div>
         </div>
     </section>

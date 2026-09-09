@@ -191,6 +191,33 @@ function buildConnectorCard(key, c) {
   return card;
 }
 
+function renderCredentials(rows) {
+  const grid = document.getElementById('credentialGrid');
+  if (!grid) return;
+  clearEl(grid);
+  if (!rows?.length) {
+    emptyNote(grid, 'No credential probes yet');
+    return;
+  }
+  rows.forEach((row) => {
+    const card = document.createElement('div');
+    card.className = 'workflow-card';
+    const info = document.createElement('div');
+    info.className = 'workflow-info';
+    const title = document.createElement('h4');
+    title.textContent = row.name;
+    const detail = document.createElement('div');
+    const active = row.status === 'active';
+    detail.className = `connector-detail${active ? '' : ' error'}`;
+    detail.textContent = active ? `ACTIVE · ${row.evidence}` : `UNKNOWN · ${row.evidence}`;
+    info.append(title, detail);
+    const dot = document.createElement('div');
+    dot.className = `status-dot ${active ? 'green' : 'amber'}`;
+    card.append(info, dot);
+    grid.appendChild(card);
+  });
+}
+
 function renderConnectors(connectors) {
   const grid = document.getElementById('connectorGrid');
   if (!grid || !connectors) return;
@@ -213,12 +240,14 @@ async function loadDashboard() {
     renderPosts(document.getElementById('postedPosts'), dash.postedToday, 'approved', 'Nothing posted today yet');
     renderRecommendations(dash.recommendations || []);
 
-    document.querySelector('.content-column:nth-child(1) .column-count').textContent =
-      `${dash.counts?.scheduled || 0} Posts`;
-    document.querySelector('.content-column:nth-child(2) .column-count').textContent =
-      `${dash.counts?.pending || 0} Pending`;
-    document.querySelector('.content-column:nth-child(3) .column-count').textContent =
-      `${dash.counts?.postedToday || 0} Complete`;
+    const scheduledCount = document.getElementById('scheduledCount');
+    const pendingCount = document.getElementById('pendingCount');
+    const postedCount = document.getElementById('postedCount');
+    if (scheduledCount) scheduledCount.textContent = `${dash.counts?.scheduled || 0} Posts`;
+    if (pendingCount) pendingCount.textContent = `${dash.counts?.pending || 0} Pending`;
+    if (postedCount) postedCount.textContent = `${dash.counts?.postedToday || 0} Complete`;
+    const statPosts = document.getElementById('statPosts');
+    if (statPosts) statPosts.textContent = String(dash.counts?.postedToday ?? '—');
 
     document.getElementById('pendingReview').textContent = dash.counts?.recommendations || 0;
     document.getElementById('recsToday').textContent = dash.counts?.recommendations || 0;
@@ -226,6 +255,7 @@ async function loadDashboard() {
     document.getElementById('lastRun').textContent = status.lastRun || '—';
 
     renderConnectors(status.connectors);
+    renderCredentials(status.credentials);
 
     const wfGrid = document.getElementById('workflowGrid');
     if (wfGrid && status.workflows) {
